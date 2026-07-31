@@ -1,0 +1,46 @@
+---
+import { SITE_CONFIG } from '../../config/site.config';
+---
+
+<footer class="border-t border-surface-border bg-background">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div class="grid md:grid-cols-3 gap-8">
+      
+      <div>
+        <h3 class="text-text-primary font-semibold mb-3">AMT Portfolio</h3>
+        <p class="text-text-muted text-sm leading-relaxed">
+          Cyber Security Instructor, SOC Analyst & Open Source AI Security Developer.
+        </p>
+      </div>
+      
+      <div>
+        <h3 class="text-text-primary font-semibold mb-3">Quick Links</h3>
+        <div class="grid grid-cols-2 gap-2">
+          {SITE_CONFIG.navigation.map(item => (
+            <a href={item.href} class="text-text-muted hover:text-text-secondary text-sm transition-colors">
+              {item.label}
+            </a>
+          ))}
+        </div>
+      </div>
+      
+      <div>
+        <h3 class="text-text-primary font-semibold mb-3">Connect</h3>
+        <div class="space-y-2">
+          <a href={SITE_CONFIG.github.url} target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 text-text-muted hover:text-text-secondary text-sm transition-colors">
+            GitHub
+          </a>
+          <a href={SITE_CONFIG.linkedin.url} target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 text-text-muted hover:text-text-secondary text-sm transition-colors">
+            LinkedIn
+          </a>
+        </div>
+      </div>
+    </div>
+    
+    <div class="mt-12 pt-8 border-t border-surface-border text-center">
+      <p class="text-text-muted text-sm">
+        &copy; {new Date().getFullYear()} {SITE_CONFIG.name}. Built with Astro.
+      </p>
+    </div>
+  </div>
+</footer>

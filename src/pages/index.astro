@@ -1,0 +1,90 @@
+---
+import MainLayout from '../layouts/MainLayout.astro';
+import Navbar from '../components/layout/Navbar.astro';
+import HeroSection from '../components/sections/HeroSection.astro';
+import Footer from '../components/layout/Footer.astro';
+import { getAllRepositories, getUserProfile } from '../lib/github';
+
+const profile = await getUserProfile();
+const repos = await getAllRepositories();
+
+const totalStars = repos.reduce((sum: number, repo: any) => sum + repo.stargazers_count, 0);
+---
+
+<MainLayout
+  title="Abdul Muqeet Tabraiz | Cyber Security Portfolio"
+  description="Professional Cyber Security Portfolio - SOC Analyst, Threat Hunter, and Open Source AI Security Tool Developer"
+>
+  <Navbar />
+  
+  <HeroSection />
+  
+  <!-- Stats Section -->
+  <section class="py-20">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        
+        <div class="glass-panel p-6 text-center">
+          <div class="text-3xl font-bold gradient-text">{repos.length}</div>
+          <div class="text-text-muted text-sm mt-1">Repositories</div>
+        </div>
+        
+        <div class="glass-panel p-6 text-center">
+          <div class="text-3xl font-bold" style="color: #3b82f6;">{totalStars}</div>
+          <div class="text-text-muted text-sm mt-1">Total Stars</div>
+        </div>
+        
+        <div class="glass-panel p-6 text-center">
+          <div class="text-3xl font-bold" style="color: #06b6d4;">{profile?.followers || 0}</div>
+          <div class="text-text-muted text-sm mt-1">Followers</div>
+        </div>
+        
+        <div class="glass-panel p-6 text-center">
+          <div class="text-3xl font-bold" style="color: #10b981;">{profile?.public_repos || 0}</div>
+          <div class="text-text-muted text-sm mt-1">Public Repos</div>
+        </div>
+        
+      </div>
+    </div>
+  </section>
+  
+  <!-- Featured Projects -->
+  <section class="py-20">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <h2 class="text-3xl font-bold text-text-primary text-center mb-12">Featured Projects</h2>
+      
+      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {repos.slice(0, 6).map((repo: any) => (
+          <a href={`/projects/${repo.name}`} class="glass-panel p-6 transition-all duration-300" style="border-color: #1e293b;" onmouseover="this.style.borderColor='rgba(59,130,246,0.3)'" onmouseout="this.style.borderColor='#1e293b'">
+            <div class="flex items-start justify-between mb-3">
+              <h3 class="font-semibold text-text-primary">{repo.name}</h3>
+              {repo.stargazers_count > 0 && (
+                <span class="flex items-center gap-1 text-text-muted text-sm">
+                  <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                  {repo.stargazers_count}
+                </span>
+              )}
+            </div>
+            <p class="text-text-muted text-sm mb-4 line-clamp-3">
+              {repo.description || 'No description'}
+            </p>
+            <div class="flex items-center gap-2 flex-wrap">
+              {repo.language && (
+                <span class="px-2 py-0.5 text-xs rounded-full" style="background-color: rgba(59, 130, 246, 0.1); color: #60a5fa;">
+                  {repo.language}
+                </span>
+              )}
+              {repo.topics && repo.topics.slice(0, 3).map((topic: string) => (
+                <span class="px-2 py-0.5 text-xs rounded-full bg-surface text-text-muted">
+                  {topic}
+                </span>
+              ))}
+            </div>
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+  
+  <Footer />
+</MainLayout>
