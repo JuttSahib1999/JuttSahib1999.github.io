@@ -1,0 +1,116 @@
+---
+import MainLayout from '../layouts/MainLayout.astro';
+import Navbar from '../components/layout/Navbar.astro';
+import Footer from '../components/layout/Footer.astro';
+---
+
+<MainLayout
+  title="Security Labs | Abdul Muqeet Tabraiz"
+  description="Hands-on cyber security lab environments and tutorials"
+>
+  <Navbar />
+  
+  <main class="pt-24 pb-20">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <!-- Header -->
+      <div class="text-center mb-16">
+        <h1 class="text-4xl md:text-5xl font-bold text-text-primary mb-4">
+          Security Labs
+        </h1>
+        <p class="text-text-secondary text-lg max-w-2xl mx-auto">
+          Hands-on lab environments for learning SOC operations, threat detection, and security monitoring.
+        </p>
+      </div>
+      
+      <!-- Labs Grid -->
+      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        
+        <!-- Lab 1: Wazuh SIEM -->
+        <div class="glass-panel p-6 transition-all duration-300 hover:border-cyber-500/30">
+          <div class="text-4xl mb-4">🛡️</div>
+          <h3 class="text-lg font-semibold text-text-primary mb-2">Wazuh SIEM Lab</h3>
+          <p class="text-text-muted text-sm mb-4">
+            Complete SIEM environment with Wazuh server, Elastic Stack, and Windows/Linux agents.
+          </p>
+          <div class="space-y-2 mb-4">
+            <div class="flex items-center gap-2 text-text-muted text-sm">
+              <span class="text-success">✓</span> Log Collection
+            </div>
+            <div class="flex items-center gap-2 text-text-muted text-sm">
+              <span class="text-success">✓</span> Threat Detection Rules
+            </div>
+            <div class="flex items-center gap-2 text-text-muted text-sm">
+              <span class="text-success">✓</span> Dashboard Creation
+            </div>
+          </div>
+          <div class="flex gap-2 flex-wrap">
+            <span class="px-2 py-0.5 text-xs rounded-full bg-cyber-500/10 text-cyber-400">Wazuh</span>
+            <span class="px-2 py-0.5 text-xs rounded-full bg-soc-500/10 text-soc-400">Elastic</span>
+          </div>
+        </div>
+        
+        <!-- Lab 2: Suricata IDS -->
+        <div class="glass-panel p-6 transition-all duration-300 hover:border-soc-500/30">
+          <div class="text-4xl mb-4">🔍</div>
+          <h3 class="text-lg font-semibold text-text-primary mb-2">Suricata IDS Lab</h3>
+          <p class="text-text-muted text-sm mb-4">
+            Network intrusion detection with Suricata, custom rules, and traffic analysis.
+          </p>
+          <div class="space-y-2 mb-4">
+            <div class="flex items-center gap-2 text-text-muted text-sm">
+              <span class="text-success">✓</span> Rule Writing
+            </div>
+            <div class="flex items-center gap-2 text-text-muted text-sm">
+              <span class="text-success">✓</span> Alert Analysis
+            </div>
+            <div class="flex items-center gap-2 text-text-muted text-sm">
+              <span class="text-success">✓</span> Traffic Monitoring
+            </div>
+          </div>
+          <div class="flex gap-2 flex-wrap">
+            <span class="px-2 py-0.5 text-xs rounded-full bg-soc-500/10 text-soc-400">Suricata</span>
+            <span class="px-2 py-0.5 text-xs rounded-full bg-purple-400/10 text-purple-400">NIDS</span>
+          </div>
+        </div>
+        
+        <!-- Lab 3: Kali Linux -->
+        <div class="glass-panel p-6 transition-all duration-300 hover:border-purple-400/30">
+          <div class="text-4xl mb-4">🐉</div>
+          <h3 class="text-lg font-semibold text-text-primary mb-2">Kali Linux Lab</h3>
+          <p class="text-text-muted text-sm mb-4">
+            Penetration testing environment with Kali Linux tools and vulnerable targets.
+          </p>
+          <div class="space-y-2 mb-4">
+            <div class="flex items-center gap-2 text-text-muted text-sm">
+              <span class="text-success">✓</span> Reconnaissance Tools
+            </div>
+            <div class="flex items-center gap-2 text-text-muted text-sm">
+              <span class="text-success">✓</span> Vulnerability Scanning
+            </div>
+            <div class="flex items-center gap-2 text-text-muted text-sm">
+              <span class="text-success">✓</span> Exploitation Practice
+            </div>
+          </div>
+          <div class="flex gap-2 flex-wrap">
+            <span class="px-2 py-0.5 text-xs rounded-full bg-purple-400/10 text-purple-400">Kali</span>
+            <span class="px-2 py-0.5 text-xs rounded-full bg-cyber-500/10 text-cyber-400">Pentesting</span>
+          </div>
+        </div>
+        
+      </div>
+      
+      <!-- More labs coming -->
+      <div class="glass-panel p-8 mt-8 text-center">
+        <div class="text-4xl mb-4">🚧</div>
+        <h3 class="text-xl font-semibold text-text-primary mb-2">More Labs Coming Soon</h3>
+        <p class="text-text-muted">
+          I'm building detailed walkthrough labs for threat hunting, malware analysis, and incident response.
+        </p>
+      </div>
+      
+    </div>
+  </main>
+  
+  <Footer />
+</MainLayout>

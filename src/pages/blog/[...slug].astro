@@ -1,0 +1,81 @@
+---
+import MainLayout from '../../layouts/MainLayout.astro';
+import Navbar from '../../components/layout/Navbar.astro';
+import Footer from '../../components/layout/Footer.astro';
+import { getCollection, render } from 'astro:content';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('blog');
+  
+  return posts.map((post) => ({
+    params: { slug: post.id },
+    props: { post },
+  }));
+}
+
+const { post } = Astro.props;
+const { Content } = await render(post);
+---
+
+<MainLayout
+  title={`${post.data.title} | Abdul Muqeet Tabraiz`}
+  description={post.data.description}
+>
+  <Navbar />
+  
+  <main class="pt-24 pb-20">
+    <article class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <a href="/blog" class="inline-flex items-center gap-2 text-text-muted hover:text-text-primary transition-colors mb-8">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+        </svg>
+        Back to Blog
+      </a>
+      
+      <header class="mb-8">
+        <div class="flex items-center gap-3 text-text-muted text-sm mb-4">
+          <span>{post.data.date.toLocaleDateString('en-US', { 
+            year: 'numeric', month: 'long', day: 'numeric' 
+          })}</span>
+        </div>
+        
+        <h1 class="text-3xl md:text-4xl font-bold gradient-text mb-4">
+          {post.data.title}
+        </h1>
+        
+        <div class="flex flex-wrap gap-2">
+          <span class="px-3 py-1 text-xs rounded-full bg-cyber-500/10 text-cyber-400">
+            {post.data.category}
+          </span>
+          {post.data.tags.map((tag: string) => (
+            <span class="px-3 py-1 text-xs rounded-full bg-surface text-text-muted border border-surface-border">
+              {tag}
+            </span>
+          ))}
+        </div>
+      </header>
+      
+      <div class="glass-panel p-8">
+        <div class="prose prose-invert max-w-none
+          prose-headings:text-text-primary
+          prose-h1:text-3xl prose-h1:font-bold
+          prose-h2:text-2xl prose-h2:font-semibold prose-h2:mt-8 prose-h2:mb-4
+          prose-h3:text-xl prose-h3:font-medium
+          prose-p:text-text-secondary prose-p:leading-relaxed
+          prose-a:text-cyber-400
+          prose-code:text-soc-400 prose-code:bg-surface prose-code:px-1 prose-code:py-0.5 prose-code:rounded
+          prose-pre:bg-background prose-pre:border prose-pre:border-surface-border
+          prose-li:text-text-secondary
+          prose-strong:text-text-primary
+          prose-blockquote:border-l-4 prose-blockquote:border-cyber-500 prose-blockquote:pl-4 prose-blockquote:text-text-muted
+        ">
+          <Content />
+        </div>
+      </div>
+      
+    </article>
+  </main>
+  
+  <Footer />
+</MainLayout>

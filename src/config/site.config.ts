@@ -13,7 +13,10 @@ export const SITE_CONFIG = {
   navigation: [
     { label: 'Home', href: '/' },
     { label: 'Projects', href: '/projects' },
+    { label: 'AI Projects', href: '/ai-projects' },
+    { label: 'Labs', href: '/labs' },
     { label: 'Blog', href: '/blog' },
+    { label: 'Timeline', href: '/timeline' },
     { label: 'Contact', href: '/contact' },
     { label: 'Resume', href: '/resume' },
   ],

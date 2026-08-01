@@ -1,0 +1,96 @@
+---
+import MainLayout from '../layouts/MainLayout.astro';
+import Navbar from '../components/layout/Navbar.astro';
+import Footer from '../components/layout/Footer.astro';
+---
+
+<MainLayout
+  title="Timeline | Abdul Muqeet Tabraiz"
+  description="Career journey and experience timeline of Abdul Muqeet Tabraiz"
+>
+  <Navbar />
+  
+  <main class="pt-24 pb-20">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <!-- Header -->
+      <div class="text-center mb-16">
+        <h1 class="text-4xl md:text-5xl font-bold text-text-primary mb-4">
+          Career Timeline
+        </h1>
+        <p class="text-text-secondary text-lg">
+          My journey in Cyber Security
+        </p>
+      </div>
+      
+      <!-- Timeline -->
+      <div class="relative">
+        <!-- Vertical Line -->
+        <div class="absolute left-4 md:left-1/2 top-0 bottom-0 w-0.5 bg-surface-border transform md:-translate-x-px"></div>
+        
+        <div class="space-y-12">
+          
+          <!-- Timeline Item 1 -->
+          <div class="relative flex items-start">
+            <div class="absolute left-4 md:left-1/2 w-8 h-8 rounded-full bg-cyber-500 border-4 border-background transform -translate-x-1/2 flex items-center justify-center z-10">
+              <span class="text-white text-xs">★</span>
+            </div>
+            <div class="ml-16 md:ml-0 md:w-1/2 md:pr-12 md:text-right">
+              <div class="glass-panel p-6">
+                <span class="text-cyber-400 text-sm font-mono">2024 - Present</span>
+                <h3 class="text-lg font-semibold text-text-primary mt-1">Open Source AI Security Developer</h3>
+                <p class="text-text-muted text-sm mt-2">Building AI-powered security tools for threat detection and automation. Publishing open-source projects on GitHub.</p>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Timeline Item 2 -->
+          <div class="relative flex items-start">
+            <div class="absolute left-4 md:left-1/2 w-8 h-8 rounded-full bg-soc-500 border-4 border-background transform -translate-x-1/2 flex items-center justify-center z-10">
+              <span class="text-white text-xs">◆</span>
+            </div>
+            <div class="ml-16 md:ml-auto md:w-1/2 md:pl-12">
+              <div class="glass-panel p-6">
+                <span class="text-soc-400 text-sm font-mono">2023 - Present</span>
+                <h3 class="text-lg font-semibold text-text-primary mt-1">Cyber Security Instructor</h3>
+                <p class="text-text-muted text-sm mt-2">Teaching SOC operations, threat hunting, and practical cyber security skills. Creating educational content for aspiring security professionals.</p>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Timeline Item 3 -->
+          <div class="relative flex items-start">
+            <div class="absolute left-4 md:left-1/2 w-8 h-8 rounded-full bg-purple-400 border-4 border-background transform -translate-x-1/2 flex items-center justify-center z-10">
+              <span class="text-white text-xs">⬡</span>
+            </div>
+            <div class="ml-16 md:ml-0 md:w-1/2 md:pr-12 md:text-right">
+              <div class="glass-panel p-6">
+                <span class="text-purple-400 text-sm font-mono">2022 - Present</span>
+                <h3 class="text-lg font-semibold text-text-primary mt-1">SOC Analyst (Practitioner)</h3>
+                <p class="text-text-muted text-sm mt-2">Hands-on experience with Wazuh SIEM, Suricata IDS, and security monitoring. Developing detection rules and incident response playbooks.</p>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Timeline Item 4 -->
+          <div class="relative flex items-start">
+            <div class="absolute left-4 md:left-1/2 w-8 h-8 rounded-full bg-success border-4 border-background transform -translate-x-1/2 flex items-center justify-center z-10">
+              <span class="text-white text-xs">●</span>
+            </div>
+            <div class="ml-16 md:ml-auto md:w-1/2 md:pl-12">
+              <div class="glass-panel p-6">
+                <span class="text-success text-sm font-mono">2021 - 2022</span>
+                <h3 class="text-lg font-semibold text-text-primary mt-1">Cyber Security Fundamentals</h3>
+                <p class="text-text-muted text-sm mt-2">Started journey in cyber security. Learned networking, Linux, and security fundamentals. Set up first home lab environment.</p>
+              </div>
+            </div>
+          </div>
+          
+        </div>
+      </div>
+      
+    </div>
+  </main>
+  
+  <Footer />
+</MainLayout>

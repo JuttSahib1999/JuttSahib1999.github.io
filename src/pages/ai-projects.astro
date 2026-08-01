@@ -1,0 +1,94 @@
+---
+import MainLayout from '../layouts/MainLayout.astro';
+import Navbar from '../components/layout/Navbar.astro';
+import Footer from '../components/layout/Footer.astro';
+import { getAllRepositories } from '../lib/github';
+
+// Fetch repos and filter for AI-related ones
+const allRepos = await getAllRepositories();
+
+const aiKeywords = ['ai', 'llm', 'machine-learning', 'gpt', 'gemini', 'ollama', 'langchain', 'security-ai', 'ai-security', 'artificial-intelligence'];
+
+const aiRepos = allRepos.filter((repo: any) => {
+  const name = repo.name.toLowerCase();
+  const desc = (repo.description || '').toLowerCase();
+  const topics = (repo.topics || []).map((t: string) => t.toLowerCase());
+  
+  return aiKeywords.some(keyword => 
+    name.includes(keyword) || desc.includes(keyword) || topics.includes(keyword)
+  );
+});
+---
+
+<MainLayout
+  title="AI Security Projects | Abdul Muqeet Tabraiz"
+  description="AI-powered security tools and machine learning projects for cyber security"
+>
+  <Navbar />
+  
+  <main class="pt-24 pb-20">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <!-- Header -->
+      <div class="text-center mb-16">
+        <div class="text-6xl mb-6">🤖</div>
+        <h1 class="text-4xl md:text-5xl font-bold text-text-primary mb-4">
+          AI Security Projects
+        </h1>
+        <p class="text-text-secondary text-lg max-w-2xl mx-auto">
+          Open-source AI-powered tools for threat detection, security automation, and intelligent analysis.
+        </p>
+      </div>
+      
+      <!-- Stats -->
+      <div class="glass-panel p-6 mb-8 text-center">
+        <p class="text-text-primary text-lg">
+          <span class="gradient-text font-bold text-2xl">{aiRepos.length}</span> AI-related project{aiRepos.length !== 1 ? 's' : ''} found
+        </p>
+      </div>
+      
+      {aiRepos.length > 0 ? (
+        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {aiRepos.map((repo: any) => (
+            <a
+              href={`/projects/${repo.name}`}
+              class="glass-panel p-6 transition-all duration-300 block hover:border-purple-400/30"
+            >
+              <div class="flex items-start justify-between mb-3">
+                <h3 class="font-semibold text-text-primary text-lg">{repo.name}</h3>
+                {repo.stargazers_count > 0 && (
+                  <span class="flex items-center gap-1 text-text-muted text-sm flex-shrink-0">
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                    {repo.stargazers_count}
+                  </span>
+                )}
+              </div>
+              <p class="text-text-muted text-sm mb-4">{repo.description || 'No description'}</p>
+              <div class="flex gap-2 flex-wrap">
+                {repo.language && (
+                  <span class="px-2 py-0.5 text-xs rounded-full bg-cyber-500/10 text-cyber-400">{repo.language}</span>
+                )}
+              </div>
+            </a>
+          ))}
+        </div>
+      ) : (
+        <div class="glass-panel p-12 text-center">
+          <div class="text-6xl mb-4">🧪</div>
+          <h2 class="text-xl font-semibold text-text-primary mb-2">No AI Projects Found</h2>
+          <p class="text-text-muted">
+            AI-related projects will automatically appear here when detected. Add AI-related topics to your repositories.
+          </p>
+          <div class="mt-6">
+            <a href="/projects" class="inline-flex items-center gap-2 px-4 py-2 bg-cyber-500 text-white rounded-lg text-sm font-medium hover:bg-cyber-600 transition-colors">
+              View All Projects
+            </a>
+          </div>
+        </div>
+      )}
+      
+    </div>
+  </main>
+  
+  <Footer />
+</MainLayout>
