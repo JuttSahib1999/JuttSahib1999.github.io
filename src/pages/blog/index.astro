@@ -37,14 +37,6 @@ const posts = allPosts
           <span class="text-cyber-400 font-semibold">{posts.length}</span> article{posts.length !== 1 ? 's' : ''} published
         </p>
       </div>
-      
-      <!-- DEBUG: Show slugs -->
-      <div class="glass-panel p-4 mb-4">
-      <p class="text-text-muted text-sm">Debug - Found posts:</p>
-      {posts.map(p => (
-          <p class="text-text-muted text-xs">Slug: "{p.slug}", ID: "{p.id}"</p>
-      ))}
-      </div>
 
       <!-- Blog Posts List -->
       {posts.length > 0 ? (
