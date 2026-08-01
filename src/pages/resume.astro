@@ -1,0 +1,149 @@
+---
+import MainLayout from '../layouts/MainLayout.astro';
+import Navbar from '../components/layout/Navbar.astro';
+import Footer from '../components/layout/Footer.astro';
+---
+
+<MainLayout
+  title="Resume | Abdul Muqeet Tabraiz"
+  description="Professional resume of Abdul Muqeet Tabraiz - Cyber Security Instructor & SOC Analyst"
+>
+  <Navbar />
+  
+  <main class="pt-24 pb-20">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <!-- Header -->
+      <div class="text-center mb-16">
+        <h1 class="text-4xl md:text-5xl font-bold text-text-primary mb-4">
+          Resume
+        </h1>
+        <p class="text-text-secondary text-lg">
+          Download my resume or view it online
+        </p>
+      </div>
+      
+      <!-- Resume Content -->
+      <div class="glass-panel p-8 mb-8">
+        
+        <!-- Contact Info -->
+        <div class="text-center mb-8 pb-8 border-b border-surface-border">
+          <h2 class="text-3xl font-bold gradient-text mb-2">Abdul Muqeet Tabraiz</h2>
+          <p class="text-text-secondary text-lg">Cyber Security Instructor | SOC Analyst | Threat Hunter</p>
+          <div class="flex justify-center gap-4 mt-4 text-text-muted text-sm">
+            <span>🇵🇰 Pakistan</span>
+            <span>•</span>
+            <a href="https://github.com/JuttSahib1999" target="_blank" class="hover:text-cyber-400 transition-colors">GitHub</a>
+            <span>•</span>
+            <a href="https://linkedin.com/in/abdul-muqeet-tabraiz-49310b270" target="_blank" class="hover:text-soc-400 transition-colors">LinkedIn</a>
+          </div>
+        </div>
+        
+        <!-- Professional Summary -->
+        <div class="mb-8">
+          <h3 class="text-xl font-semibold text-text-primary mb-4 flex items-center gap-2">
+            <span class="w-8 h-1 rounded-full" style="background-color: #3b82f6;"></span>
+            Professional Summary
+          </h3>
+          <p class="text-text-secondary leading-relaxed">
+            Dedicated Cyber Security professional with expertise in SOC operations, threat hunting, 
+            and security automation. Passionate about building open-source AI security tools and 
+            teaching the next generation of security analysts. Experienced in SIEM implementation, 
+            incident response, and developing detection engineering solutions.
+          </p>
+        </div>
+        
+        <!-- Skills -->
+        <div class="mb-8">
+          <h3 class="text-xl font-semibold text-text-primary mb-4 flex items-center gap-2">
+            <span class="w-8 h-1 rounded-full" style="background-color: #06b6d4;"></span>
+            Technical Skills
+          </h3>
+          <div class="grid sm:grid-cols-2 gap-4">
+            <div class="bg-background p-4 rounded-lg">
+              <h4 class="text-text-primary font-medium mb-2">Security Operations</h4>
+              <p class="text-text-muted text-sm">SOC Analysis, Threat Hunting, Incident Response, SIEM (Wazuh, Splunk), IDS/IPS (Suricata, Snort)</p>
+            </div>
+            <div class="bg-background p-4 rounded-lg">
+              <h4 class="text-text-primary font-medium mb-2">Security Tools</h4>
+              <p class="text-text-muted text-sm">Kali Linux, Wireshark, Nmap, Metasploit, Burp Suite, OWASP ZAP</p>
+            </div>
+            <div class="bg-background p-4 rounded-lg">
+              <h4 class="text-text-primary font-medium mb-2">Programming</h4>
+              <p class="text-text-muted text-sm">Python, JavaScript, TypeScript, Bash, PowerShell</p>
+            </div>
+            <div class="bg-background p-4 rounded-lg">
+              <h4 class="text-text-primary font-medium mb-2">AI & Automation</h4>
+              <p class="text-text-muted text-sm">LLM Integration, Security Automation, AI-Powered Detection Tools</p>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Experience -->
+        <div class="mb-8">
+          <h3 class="text-xl font-semibold text-text-primary mb-4 flex items-center gap-2">
+            <span class="w-8 h-1 rounded-full" style="background-color: #8b5cf6;"></span>
+            Experience & Projects
+          </h3>
+          <div class="space-y-4">
+            <div class="bg-background p-4 rounded-lg">
+              <div class="flex justify-between items-start mb-2">
+                <h4 class="text-text-primary font-medium">Open Source AI Security Developer</h4>
+                <span class="text-text-muted text-xs">Present</span>
+              </div>
+              <p class="text-text-muted text-sm">
+                Developing open-source AI-powered security tools for threat detection, 
+                log analysis, and security automation. Published on GitHub.
+              </p>
+            </div>
+            <div class="bg-background p-4 rounded-lg">
+              <div class="flex justify-between items-start mb-2">
+                <h4 class="text-text-primary font-medium">Cyber Security Instructor</h4>
+                <span class="text-text-muted text-xs">Present</span>
+              </div>
+              <p class="text-text-muted text-sm">
+                Creating educational content on SOC operations, threat hunting, 
+                and practical cyber security skills. Teaching through online platforms.
+              </p>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Certifications (Placeholder) -->
+        <div>
+          <h3 class="text-xl font-semibold text-text-primary mb-4 flex items-center gap-2">
+            <span class="w-8 h-1 rounded-full" style="background-color: #10b981;"></span>
+            Certifications & Learning
+          </h3>
+          <div class="bg-background p-4 rounded-lg">
+            <p class="text-text-muted text-sm">
+              Continuously learning and pursuing industry certifications in SOC analysis, 
+              threat hunting, and cloud security. Check my LinkedIn for latest certifications.
+            </p>
+          </div>
+        </div>
+        
+      </div>
+      
+            <!-- Download Buttons -->
+      <div class="text-center">
+        <div class="flex flex-wrap justify-center gap-4">
+          <a
+            href="/files/resume.pdf"
+            download
+            class="inline-flex items-center gap-2 px-6 py-3 bg-cyber-500 text-white rounded-lg font-medium hover:bg-cyber-600 transition-colors"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+            </svg>
+            Download Resume (PDF)
+          </a>
+        </div>
+        
+      </div>
+      
+    </div>
+  </main>
+  
+  <Footer />
+</MainLayout>

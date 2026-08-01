@@ -1,0 +1,54 @@
+---
+import MainLayout from '../layouts/MainLayout.astro';
+import Navbar from '../components/layout/Navbar.astro';
+---
+
+<MainLayout
+  title="404 - Resource Not Found | Abdul Muqeet Tabraiz"
+  description="The requested resource could not be located"
+>
+  <Navbar />
+  
+  <main class="min-h-screen flex items-center justify-center pt-16">
+    <div class="text-center px-4">
+      
+      <!-- Error Code -->
+      <div class="text-8xl font-bold gradient-text mb-4">404</div>
+      
+      <!-- Terminal-style message -->
+      <div class="glass-panel p-8 max-w-lg mx-auto mb-8">
+        <div class="font-mono text-sm space-y-2">
+          <p style="color: #ef4444;">
+            <span style="color: #64748b;">[</span><span style="color: #ef4444;">!</span><span style="color: #64748b;">]</span> ERROR: Resource not found
+          </p>
+          <p style="color: #64748b;">
+            <span style="color: #64748b;">[</span><span style="color: #f59e0b;">*</span><span style="color: #64748b;">]</span> The requested path escaped detection
+          </p>
+          <p style="color: #64748b;">
+            <span style="color: #64748b;">[</span><span style="color: #3b82f6;">~</span><span style="color: #64748b;">]</span> Scanning for alternative routes...
+          </p>
+          <p style="color: #10b981;">
+            <span style="color: #64748b;">[</span><span style="color: #10b981;">✓</span><span style="color: #64748b;">]</span> Safe routes located below
+          </p>
+        </div>
+      </div>
+      
+      <!-- Navigation Suggestions -->
+      <h2 class="text-xl font-semibold text-text-primary mb-6">
+        Return to a safe location
+      </h2>
+      <div class="flex flex-wrap justify-center gap-4">
+        <a href="/" class="px-6 py-3 bg-cyber-500 text-white rounded-lg font-medium hover:bg-cyber-600 transition-colors">
+          🏠 Home Dashboard
+        </a>
+        <a href="/projects" class="px-6 py-3 border border-surface-border text-text-secondary rounded-lg font-medium hover:text-text-primary hover:border-text-muted transition-colors">
+          📁 Projects
+        </a>
+        <a href="/contact" class="px-6 py-3 border border-surface-border text-text-secondary rounded-lg font-medium hover:text-text-primary hover:border-text-muted transition-colors">
+          📧 Contact
+        </a>
+      </div>
+      
+    </div>
+  </main>
+</MainLayout>

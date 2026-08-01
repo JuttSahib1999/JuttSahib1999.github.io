@@ -1,0 +1,156 @@
+---
+import MainLayout from '../../layouts/MainLayout.astro';
+import Navbar from '../../components/layout/Navbar.astro';
+import Footer from '../../components/layout/Footer.astro';
+import { getAllRepositories, getRepositoryReadme } from '../../lib/github';
+
+// This function tells Astro which pages to generate
+export async function getStaticPaths() {
+  const repos = await getAllRepositories();
+  
+  return repos
+    .filter((repo: any) => !repo.fork) // Skip forked repos
+    .map((repo: any) => ({
+      params: { name: repo.name },
+    }));
+}
+
+// Get the repo name from the URL
+const { name } = Astro.params;
+
+// Fetch all repos and find the matching one
+const repos = await getAllRepositories();
+const repo = repos.find((r: any) => r.name === name);
+
+// Fetch README if repo exists
+let readme = null;
+if (repo) {
+  readme = await getRepositoryReadme(repo.name);
+}
+
+// If repo not found, show 404
+if (!repo) {
+  return new Response(null, { status: 404 });
+}
+---
+
+<MainLayout
+  title={`${repo.name} | Abdul Muqeet Tabraiz`}
+  description={repo.description || `${repo.name} - A project by Abdul Muqeet Tabraiz`}
+>
+  <Navbar />
+  
+  <main class="pt-24 pb-20">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <!-- Back Link -->
+      <a href="/projects" class="inline-flex items-center gap-2 text-text-muted hover:text-text-primary transition-colors mb-8">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+        </svg>
+        Back to Projects
+      </a>
+      
+      <!-- Repository Header -->
+      <div class="glass-panel p-8 mb-8">
+        <div class="flex items-start justify-between flex-wrap gap-4">
+          <div>
+            <div class="flex items-center gap-3 mb-3">
+              <svg class="w-8 h-8 text-text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
+              </svg>
+              <h1 class="text-2xl md:text-3xl font-bold text-text-primary">{repo.name}</h1>
+            </div>
+            <p class="text-text-secondary mb-4">
+              {repo.description || 'No description provided'}
+            </p>
+            
+            <!-- Topics -->
+            <div class="flex flex-wrap gap-2 mb-4">
+              {repo.topics && repo.topics.map((topic: string) => (
+                <span class="px-3 py-1 text-xs rounded-full bg-cyber-500/10 text-cyber-400">
+                  {topic}
+                </span>
+              ))}
+            </div>
+          </div>
+          
+          <!-- Action Buttons -->
+          <div class="flex gap-3">
+            <a
+              href={repo.html_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              class="inline-flex items-center gap-2 px-4 py-2 bg-cyber-500 text-white rounded-lg text-sm font-medium hover:bg-cyber-600 transition-colors"
+            >
+              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
+              View on GitHub
+            </a>
+            <a
+              href={`${repo.html_url}/archive/refs/heads/${repo.default_branch}.zip`}
+              class="inline-flex items-center gap-2 px-4 py-2 border border-surface-border text-text-secondary rounded-lg text-sm font-medium hover:text-text-primary hover:border-text-muted transition-colors"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+              </svg>
+              Download ZIP
+            </a>
+          </div>
+        </div>
+        
+        <!-- Stats Row -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-6 pt-6 border-t border-surface-border">
+          <div class="text-center">
+            <div class="text-lg font-bold text-text-primary">{repo.stargazers_count}</div>
+            <div class="text-text-muted text-xs">Stars</div>
+          </div>
+          <div class="text-center">
+            <div class="text-lg font-bold text-text-primary">{repo.forks_count}</div>
+            <div class="text-text-muted text-xs">Forks</div>
+          </div>
+          <div class="text-center">
+            <div class="text-lg font-bold text-text-primary">{repo.watchers_count}</div>
+            <div class="text-text-muted text-xs">Watchers</div>
+          </div>
+          <div class="text-center">
+            <div class="text-lg font-bold text-text-primary">{repo.open_issues_count}</div>
+            <div class="text-text-muted text-xs">Open Issues</div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- README Section -->
+      <div class="glass-panel p-8">
+        <h2 class="text-xl font-semibold text-text-primary mb-6 flex items-center gap-2">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+          </svg>
+          README.md
+        </h2>
+        
+        {readme ? (
+          <div class="prose prose-invert max-w-none">
+            <pre class="text-text-secondary text-sm font-mono whitespace-pre-wrap overflow-x-auto bg-background p-6 rounded-lg"><code>{readme}</code></pre>
+          </div>
+        ) : (
+          <div class="text-center py-12">
+            <div class="text-4xl mb-4">📄</div>
+            <h3 class="text-lg font-semibold text-text-primary mb-2">No README available</h3>
+            <p class="text-text-muted">This repository doesn't have a README file yet.</p>
+            <a
+              href={repo.html_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              class="inline-flex items-center gap-2 mt-4 px-4 py-2 bg-cyber-500 text-white rounded-lg text-sm font-medium hover:bg-cyber-600 transition-colors"
+            >
+              View on GitHub
+            </a>
+          </div>
+        )}
+      </div>
+      
+    </div>
+  </main>
+  
+  <Footer />
+</MainLayout>

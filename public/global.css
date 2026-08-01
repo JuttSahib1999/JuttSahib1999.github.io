@@ -1,51 +1,26 @@
 @import "tailwindcss";
 
-/* ============================================================
- * CUSTOM THEME - SOC Dashboard
- * ============================================================ */
-
 @theme {
-  /* Background colors */
   --color-background: #0a0a0f;
-  --color-background-secondary: #0d1117;
   --color-surface: #131320;
   --color-surface-border: #1e293b;
-  
-  /* Primary - Cyber Blue */
   --color-cyber-400: #60a5fa;
   --color-cyber-500: #3b82f6;
   --color-cyber-600: #2563eb;
-  
-  /* Secondary - SOC Cyan */
   --color-soc-400: #22d3ee;
   --color-soc-500: #06b6d4;
-  
-  /* Accent */
   --color-purple-400: #a78bfa;
-  --color-purple-500: #8b5cf6;
-  
-  /* Status colors */
   --color-success: #10b981;
   --color-warning: #f59e0b;
   --color-critical: #ef4444;
-  
-  /* Text colors */
   --color-text-primary: #e2e8f0;
   --color-text-secondary: #94a3b8;
   --color-text-muted: #64748b;
-  
-  /* Fonts */
   --font-sans: 'Inter', system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
 }
 
-/* ============================================================
- * BASE STYLES
- * ============================================================ */
-
-html {
-  scroll-behavior: smooth;
-}
+html { scroll-behavior: smooth; }
 
 body {
   background-color: var(--color-background);
@@ -53,33 +28,6 @@ body {
   font-family: var(--font-sans);
   min-height: 100vh;
 }
-
-::selection {
-  background-color: rgba(59, 130, 246, 0.3);
-  color: var(--color-text-primary);
-}
-
-/* Custom scrollbar */
-::-webkit-scrollbar {
-  width: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background: var(--color-background-secondary);
-}
-
-::-webkit-scrollbar-thumb {
-  background: var(--color-surface-border);
-  border-radius: 9999px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: var(--color-text-muted);
-}
-
-/* ============================================================
- * REUSABLE COMPONENT CLASSES
- * ============================================================ */
 
 .glass-panel {
   background-color: var(--color-surface);
@@ -92,14 +40,4 @@ body {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-}
-
-/* Reduced motion support */
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    transition-duration: 0.01ms !important;
-  }
 }
