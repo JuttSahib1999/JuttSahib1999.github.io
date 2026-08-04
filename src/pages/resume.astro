@@ -1,209 +1,219 @@
 ---
-
-## import MainLayout from '../layouts/MainLayout.astro';
+import MainLayout from '../layouts/MainLayout.astro';
 import Navbar from '../components/layout/Navbar.astro';
 import Footer from '../components/layout/Footer.astro';
+---
 
-```
-  <!-- Header -->
-  <div class="text-center mb-16">
-    <h1 class="text-4xl md:text-5xl font-bold text-text-primary mb-4">
-      Resume
-    </h1>
-    <p class="text-text-secondary text-lg">
-      Download my resume or view it online
-    </p>
-  </div>
+<MainLayout
+  title="Resume | Abdul Muqeet Tabraiz"
+  description="Professional resume of Abdul Muqeet Tabraiz - Certified Ethical Hacker & SOC Analyst"
+>
+  <Navbar />
   
-  <!-- Resume Content -->
-  <div class="glass-panel p-8 mb-8">
-    
-    <!-- Contact Info -->
-    <div class="text-center mb-8 pb-8 border-b border-surface-border">
-      <h2 class="text-3xl font-bold gradient-text mb-2">Abdul Muqeet Tabraiz</h2>
-      <p class="text-text-secondary text-lg">Certified Ethical Hacker (CEH) | SOC Analyst | Digital Forensics & Incident Response (DFIR) | Wazuh (SIEM)</p>
-      <div class="flex justify-center flex-wrap gap-4 mt-4 text-text-muted text-sm">
-        <span>🇵🇰 Sialkot, Punjab, Pakistan</span>
-        <span>•</span>
-        <span>abdulmuqeett1999@gmail.com</span>
-        <span>•</span>
-        <a href="[https://github.com/JuttSahib1999](https://github.com/JuttSahib1999)" target="_blank" class="hover:text-cyber-400 transition-colors">GitHub</a>
-        <span>•</span>
-        <a href="[https://www.linkedin.com/in/abdul-muqeet-tabraiz](https://www.linkedin.com/in/abdul-muqeet-tabraiz)" target="_blank" class="hover:text-soc-400 transition-colors">LinkedIn</a>
+  <main class="pt-24 pb-20">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <!-- Header -->
+      <div class="text-center mb-16">
+        <h1 class="text-4xl md:text-5xl font-bold text-text-primary mb-4">
+          Resume
+        </h1>
+        <p class="text-text-secondary text-lg">
+          Download my resume or view it online
+        </p>
       </div>
-    </div>
-    
-    <!-- Professional Summary -->
-    <div class="mb-8">
-      <h3 class="text-xl font-semibold text-text-primary mb-4 flex items-center gap-2">
-        <span class="w-8 h-1 rounded-full" style="background-color: #3b82f6;"></span>
-        Professional Summary
-      </h3>
-      <p class="text-text-secondary leading-relaxed">
-        Certified Ethical Hacker and Cyber Security professional with a strong foundation in SOC operations, digital forensics, incident response, and threat analysis. Active practitioner in cybersecurity labs, Wazuh SIEM implementation, and network infrastructure security. Experienced through multiple specialized internships and professional roles in safeguarding sensitive data, conducting vulnerability assessments, and managing robust security protocols.
-      </p>
-    </div>
-    
-    <!-- Skills -->
-    <div class="mb-8">
-      <h3 class="text-xl font-semibold text-text-primary mb-4 flex items-center gap-2">
-        <span class="w-8 h-1 rounded-full" style="background-color: #06b6d4;"></span>
-        Technical Skills
-      </h3>
-      <div class="grid sm:grid-cols-2 gap-4">
-        <div class="bg-background p-4 rounded-lg">
-          <h4 class="text-text-primary font-medium mb-2">Security Operations & Analysis</h4>
-          <p class="text-text-muted text-sm">SOC Operations, DFIR, SIEM (Wazuh), Internet Security, Threat Analysis, Vulnerability Assessments</p>
-        </div>
-        <div class="bg-background p-4 rounded-lg">
-          <h4 class="text-text-primary font-medium mb-2">Security Tools & Protocols</h4>
-          <p class="text-text-muted text-sm">Wireshark, GitHub, Network Infrastructure, Firewall Management</p>
-        </div>
-        <div class="bg-background p-4 rounded-lg">
-          <h4 class="text-text-primary font-medium mb-2">Languages</h4>
-          <p class="text-text-muted text-sm">Urdu (Native or Bilingual), English (Professional Working)</p>
-        </div>
-        <div class="bg-background p-4 rounded-lg">
-          <h4 class="text-text-primary font-medium mb-2">Core Competencies</h4>
-          <p class="text-text-muted text-sm">Ethical Hacking, Web Application Vulnerabilities, Network Troubleshooting, Fault Resolution</p>
-        </div>
-      </div>
-    </div>
-    
-    <!-- Experience -->
-    <div class="mb-8">
-      <h3 class="text-xl font-semibold text-text-primary mb-4 flex items-center gap-2">
-        <span class="w-8 h-1 rounded-full" style="background-color: #8b5cf6;"></span>
-        Experience
-      </h3>
-      <div class="space-y-4">
-        <div class="bg-background p-4 rounded-lg">
-          <div class="flex justify-between items-start mb-2">
-            <h4 class="text-text-primary font-medium">Blue Team Intern • Cyberster</h4>
-            <span class="text-text-muted text-xs">March 2026 - May 2026</span>
+      
+      <!-- Resume Content -->
+      <div class="glass-panel p-8 mb-8">
+        
+        <!-- Contact Info -->
+        <div class="text-center mb-8 pb-8 border-b border-surface-border">
+          <h2 class="text-3xl font-bold gradient-text mb-2">Abdul Muqeet Tabraiz</h2>
+          <p class="text-text-secondary text-lg">Certified Ethical Hacker (CEH) | SOC Analyst | Digital Forensics & Incident Response (DFIR) | Wazuh (SIEM)</p>
+          <div class="flex justify-center flex-wrap gap-4 mt-4 text-text-muted text-sm">
+            <span>🇵🇰 Sialkot, Punjab, Pakistan</span>
+            <span>•</span>
+            <span>abdulmuqeett1999@gmail.com</span>
+            <span>•</span>
+            <a href="https://github.com/JuttSahib1999" target="_blank" class="hover:text-cyber-400 transition-colors">GitHub</a>
+            <span>•</span>
+            <a href="https://www.linkedin.com/in/abdul-muqeet-tabraiz" target="_blank" class="hover:text-soc-400 transition-colors">LinkedIn</a>
           </div>
-          <p class="text-text-muted text-sm">
-            Islāmābād, Pakistan — Focused on blue team operations, defense strategies, and security monitoring tasks.
+        </div>
+        
+        <!-- Professional Summary -->
+        <div class="mb-8">
+          <h3 class="text-xl font-semibold text-text-primary mb-4 flex items-center gap-2">
+            <span class="w-8 h-1 rounded-full" style="background-color: #3b82f6;"></span>
+            Professional Summary
+          </h3>
+          <p class="text-text-secondary leading-relaxed">
+            Certified Ethical Hacker and Cyber Security professional with a strong foundation in SOC operations, digital forensics, incident response, and threat analysis. Active practitioner in cybersecurity labs, Wazuh SIEM implementation, and network infrastructure security. Experienced through multiple specialized internships and professional roles in safeguarding sensitive data, conducting vulnerability assessments, and managing robust security protocols.
           </p>
         </div>
-        <div class="bg-background p-4 rounded-lg">
-          <div class="flex justify-between items-start mb-2">
-            <h4 class="text-text-primary font-medium">Cyber Security Intern • DevelopersHub Corporation</h4>
-            <span class="text-text-muted text-xs">February 2026 - March 2026</span>
+        
+        <!-- Skills -->
+        <div class="mb-8">
+          <h3 class="text-xl font-semibold text-text-primary mb-4 flex items-center gap-2">
+            <span class="w-8 h-1 rounded-full" style="background-color: #06b6d4;"></span>
+            Technical Skills
+          </h3>
+          <div class="grid sm:grid-cols-2 gap-4">
+            <div class="bg-background p-4 rounded-lg">
+              <h4 class="text-text-primary font-medium mb-2">Security Operations & Analysis</h4>
+              <p class="text-text-muted text-sm">SOC Operations, DFIR, SIEM (Wazuh), Internet Security, Threat Analysis, Vulnerability Assessments</p>
+            </div>
+            <div class="bg-background p-4 rounded-lg">
+              <h4 class="text-text-primary font-medium mb-2">Security Tools & Protocols</h4>
+              <p class="text-text-muted text-sm">Wireshark, GitHub, Network Infrastructure, Firewall Management</p>
+            </div>
+            <div class="bg-background p-4 rounded-lg">
+              <h4 class="text-text-primary font-medium mb-2">Languages</h4>
+              <p class="text-text-muted text-sm">Urdu (Native or Bilingual), English (Professional Working)</p>
+            </div>
+            <div class="bg-background p-4 rounded-lg">
+              <h4 class="text-text-primary font-medium mb-2">Core Competencies</h4>
+              <p class="text-text-muted text-sm">Ethical Hacking, Web Application Vulnerabilities, Network Troubleshooting, Fault Resolution</p>
+            </div>
           </div>
-          <p class="text-text-muted text-sm">
-            Pakistan — Engaged in practical cybersecurity workflows and technical task execution.
-          </p>
         </div>
-        <div class="bg-background p-4 rounded-lg">
-          <div class="flex justify-between items-start mb-2">
-            <h4 class="text-text-primary font-medium">Cyber Security Intern • Syntecxhub</h4>
-            <span class="text-text-muted text-xs">January 2026 - February 2026</span>
+        
+        <!-- Experience -->
+        <div class="mb-8">
+          <h3 class="text-xl font-semibold text-text-primary mb-4 flex items-center gap-2">
+            <span class="w-8 h-1 rounded-full" style="background-color: #8b5cf6;"></span>
+            Experience
+          </h3>
+          <div class="space-y-4">
+            <div class="bg-background p-4 rounded-lg">
+              <div class="flex justify-between items-start mb-2">
+                <h4 class="text-text-primary font-medium">Blue Team Intern • Cyberster</h4>
+                <span class="text-text-muted text-xs">March 2026 - May 2026</span>
+              </div>
+              <p class="text-text-muted text-sm">
+                Islāmābād, Pakistan — Focused on blue team operations, defense strategies, and security monitoring tasks.
+              </p>
+            </div>
+            <div class="bg-background p-4 rounded-lg">
+              <div class="flex justify-between items-start mb-2">
+                <h4 class="text-text-primary font-medium">Cyber Security Intern • DevelopersHub Corporation</h4>
+                <span class="text-text-muted text-xs">February 2026 - March 2026</span>
+              </div>
+              <p class="text-text-muted text-sm">
+                Pakistan — Engaged in practical cybersecurity workflows and technical task execution.
+              </p>
+            </div>
+            <div class="bg-background p-4 rounded-lg">
+              <div class="flex justify-between items-start mb-2">
+                <h4 class="text-text-primary font-medium">Cyber Security Intern • Syntecxhub</h4>
+                <span class="text-text-muted text-xs">January 2026 - February 2026</span>
+              </div>
+              <p class="text-text-muted text-sm">
+                Remote — Gained hands-on remote experience in cybersecurity principles and analysis.
+              </p>
+            </div>
+            <div class="bg-background p-4 rounded-lg">
+              <div class="flex justify-between items-start mb-2">
+                <h4 class="text-text-primary font-medium">Cyber Security Specialist • Vista Impex Intl</h4>
+                <span class="text-text-muted text-xs">June 2024 - June 2025</span>
+              </div>
+              <p class="text-text-muted text-sm">
+                Sialkot, Punjab, Pakistan — Safeguarded sensitive company and client data, implemented robust security protocols and firewalls, provided network infrastructure support, executed vulnerability assessments, and monitored network traffic using Wireshark to detect threats.
+              </p>
+            </div>
+            <div class="bg-background p-4 rounded-lg">
+              <div class="flex justify-between items-start mb-2">
+                <h4 class="text-text-primary font-medium">Cyber Security Intern • The Red Users</h4>
+                <span class="text-text-muted text-xs">December 2024 - January 2025</span>
+              </div>
+              <p class="text-text-muted text-sm">
+                India — Analyzed network traffic, examined web application vulnerabilities, and worked with firewall configurations.
+              </p>
+            </div>
           </div>
-          <p class="text-text-muted text-sm">
-            Remote — Gained hands-on remote experience in cybersecurity principles and analysis.
-          </p>
         </div>
-        <div class="bg-background p-4 rounded-lg">
-          <div class="flex justify-between items-start mb-2">
-            <h4 class="text-text-primary font-medium">Cyber Security Specialist • Vista Impex Intl</h4>
-            <span class="text-text-muted text-xs">June 2024 - June 2025</span>
-          </div>
-          <p class="text-text-muted text-sm">
-            Sialkot, Punjab, Pakistan — Safeguarded sensitive company and client data, implemented robust security protocols and firewalls, provided network infrastructure support, executed vulnerability assessments, and monitored network traffic using Wireshark to detect threats.
-          </p>
-        </div>
-        <div class="bg-background p-4 rounded-lg">
-          <div class="flex justify-between items-start mb-2">
-            <h4 class="text-text-primary font-medium">Cyber Security Intern • The Red Users</h4>
-            <span class="text-text-muted text-xs">December 2024 - January 2025</span>
-          </div>
-          <p class="text-text-muted text-sm">
-            India — Analyzed network traffic, examined web application vulnerabilities, and worked with firewall configurations.
-          </p>
-        </div>
-      </div>
-    </div>
 
-    <!-- Education -->
-    <div class="mb-8">
-      <h3 class="text-xl font-semibold text-text-primary mb-4 flex items-center gap-2">
-        <span class="w-8 h-1 rounded-full" style="background-color: #ec4899;"></span>
-        Education
-      </h3>
-      <div class="space-y-4">
-        <div class="bg-background p-4 rounded-lg">
-          <div class="flex justify-between items-start mb-2">
-            <h4 class="text-text-primary font-medium">University of Sialkot</h4>
-            <span class="text-text-muted text-xs">August 2024 - November 2024</span>
+        <!-- Education -->
+        <div class="mb-8">
+          <h3 class="text-xl font-semibold text-text-primary mb-4 flex items-center gap-2">
+            <span class="w-8 h-1 rounded-full" style="background-color: #ec4899;"></span>
+            Education
+          </h3>
+          <div class="space-y-4">
+            <div class="bg-background p-4 rounded-lg">
+              <div class="flex justify-between items-start mb-2">
+                <h4 class="text-text-primary font-medium">University of Sialkot</h4>
+                <span class="text-text-muted text-xs">August 2024 - November 2024</span>
+              </div>
+              <p class="text-text-muted text-sm">CEH/CHFI, Cyber/Computer Forensics and Counterterrorism</p>
+            </div>
+            <div class="bg-background p-4 rounded-lg">
+              <div class="flex justify-between items-start mb-2">
+                <h4 class="text-text-primary font-medium">University of Sialkot</h4>
+                <span class="text-text-muted text-xs">October 2022 - July 2024</span>
+              </div>
+              <p class="text-text-muted text-sm">Bachelor's degree, Information Technology</p>
+            </div>
+            <div class="bg-background p-4 rounded-lg">
+              <div class="flex justify-between items-start mb-2">
+                <h4 class="text-text-primary font-medium">University of Sialkot</h4>
+                <span class="text-text-muted text-xs">October 2019 - August 2021</span>
+              </div>
+              <p class="text-text-muted text-sm">Associate's degree, Information Technology</p>
+            </div>
           </div>
-          <p class="text-text-muted text-sm">CEH/CHFI, Cyber/Computer Forensics and Counterterrorism</p>
         </div>
-        <div class="bg-background p-4 rounded-lg">
-          <div class="flex justify-between items-start mb-2">
-            <h4 class="text-text-primary font-medium">University of Sialkot</h4>
-            <span class="text-text-muted text-xs">October 2022 - July 2024</span>
+        
+        <!-- Certifications -->
+        <div>
+          <h3 class="text-xl font-semibold text-text-primary mb-4 flex items-center gap-2">
+            <span class="w-8 h-1 rounded-full" style="background-color: #10b981;"></span>
+            Certifications & Training
+          </h3>
+          <div class="grid sm:grid-cols-2 gap-4">
+            <div class="bg-background p-4 rounded-lg">
+              <h4 class="text-text-primary font-medium mb-1">Certified Ethical Hacker (CEH)</h4>
+              <p class="text-text-muted text-sm">EC-Council</p>
+            </div>
+            <div class="bg-background p-4 rounded-lg">
+              <h4 class="text-text-primary font-medium mb-1">Introduction to Digital Forensics</h4>
+              <p class="text-text-muted text-sm">Credential</p>
+            </div>
+            <div class="bg-background p-4 rounded-lg">
+              <h4 class="text-text-primary font-medium mb-1">Networking Basics</h4>
+              <p class="text-text-muted text-sm">Cisco Networking Academy</p>
+            </div>
+            <div class="bg-background p-4 rounded-lg">
+              <h4 class="text-text-primary font-medium mb-1">Cisco Networking Academy Learn-A-Thon 2026</h4>
+              <p class="text-text-muted text-sm">Cisco</p>
+            </div>
+            <div class="bg-background p-4 rounded-lg sm:col-span-2">
+              <h4 class="text-text-primary font-medium mb-1">Web Hacking For Beginners</h4>
+              <p class="text-text-muted text-sm">Security Training</p>
+            </div>
           </div>
-          <p class="text-text-muted text-sm">Bachelor's degree, Information Technology</p>
         </div>
-        <div class="bg-background p-4 rounded-lg">
-          <div class="flex justify-between items-start mb-2">
-            <h4 class="text-text-primary font-medium">University of Sialkot</h4>
-            <span class="text-text-muted text-xs">October 2019 - August 2021</span>
-          </div>
-          <p class="text-text-muted text-sm">Associate's degree, Information Technology</p>
+        
+      </div>
+      
+      <!-- Download Buttons -->
+      <div class="text-center">
+        <div class="flex flex-wrap justify-center gap-4">
+          <a
+            href="/files/resume.pdf"
+            download
+            class="inline-flex items-center gap-2 px-6 py-3 bg-cyber-500 text-white rounded-lg font-medium hover:bg-cyber-600 transition-colors"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+            </svg>
+            Download Resume (PDF)
+          </a>
         </div>
       </div>
+      
     </div>
-    
-    <!-- Certifications -->
-    <div>
-      <h3 class="text-xl font-semibold text-text-primary mb-4 flex items-center gap-2">
-        <span class="w-8 h-1 rounded-full" style="background-color: #10b981;"></span>
-        Certifications & Training
-      </h3>
-      <div class="grid sm:grid-cols-2 gap-4">
-        <div class="bg-background p-4 rounded-lg">
-          <h4 class="text-text-primary font-medium mb-1">Certified Ethical Hacker (CEH)</h4>
-          <p class="text-text-muted text-sm">EC-Council</p>
-        </div>
-        <div class="bg-background p-4 rounded-lg">
-          <h4 class="text-text-primary font-medium mb-1">Introduction to Digital Forensics</h4>
-          <p class="text-text-muted text-sm">Credential</p>
-        </div>
-        <div class="bg-background p-4 rounded-lg">
-          <h4 class="text-text-primary font-medium mb-1">Networking Basics</h4>
-          <p class="text-text-muted text-sm">Cisco Networking Academy</p>
-        </div>
-        <div class="bg-background p-4 rounded-lg">
-          <h4 class="text-text-primary font-medium mb-1">Cisco Networking Academy Learn-A-Thon 2026</h4>
-          <p class="text-text-muted text-sm">Cisco</p>
-        </div>
-        <div class="bg-background p-4 rounded-lg sm:col-span-2">
-          <h4 class="text-text-primary font-medium mb-1">Web Hacking For Beginners</h4>
-          <p class="text-text-muted text-sm">Security Training</p>
-        </div>
-      </div>
-    </div>
-    
-  </div>
+  </main>
   
-  <!-- Download Buttons -->
-  <div class="text-center">
-    <div class="flex flex-wrap justify-center gap-4">
-      <a
-        href="/files/resume.pdf"
-        download
-        class="inline-flex items-center gap-2 px-6 py-3 bg-cyber-500 text-white rounded-lg font-medium hover:bg-cyber-600 transition-colors"
-      >
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-        </svg>
-        Download Resume (PDF)
-      </a>
-    </div>
-  </div>
-  
-</div>
-
-```
+  <Footer />
+</MainLayout>
