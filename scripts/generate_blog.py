@@ -1,0 +1,48 @@
+import os
+import datetime
+import google.generativeai as genai
+
+# Configure your Gemini API key from environment variables
+genai.configure(api_key=os.environ["AI_API_KEY"])
+
+def generate_natural_blog():
+    model = genai.GenerativeModel('gemini-2.5-flash')
+    
+    prompt = """
+    You are a cyber security professional and systems analyst. 
+    Write a technical, in-depth blog post about a recent trend, defensive strategy, or vulnerability analysis in the cybersecurity industry.
+    
+    CRITICAL STYLE GUIDELINES:
+    - Write with an authoritative, grounded, and practical practitioner tone.
+    - Avoid generic AI buzzwords entirely (e.g., do NOT use words like "tapestry", "delve", "beacon of hope", "revolutionize", "testament").
+    - Structure it with clear markdown headings (##, ###) and practical bullet points.
+    
+    You must output the response strictly in the following format, including the YAML frontmatter at the top:
+    
+    ---
+    title: "[Catchy, Technical Title Here]"
+    description: "[A concise 1-2 sentence summary of the post]"
+    date: "CURRENT_DATE_PLACEHOLDER"
+    tags: ["Cybersecurity", "Threat Detection", "Security Operations"]
+    category: "Cyber Security"
+    ---
+    
+    [Your markdown content here]
+    """
+    
+    response = model.generate_content(prompt)
+    post_content = response.text
+    
+    today_str = datetime.datetime.now().strftime("%Y-%m-%d")
+    post_content = post_content.replace("CURRENT_DATE_PLACEHOLDER", today_str)
+    
+    # Save directly into your Astro content collection folder
+    filename_slug = f"src/content/blog/{today_str}-security-insight.md"
+    
+    os.makedirs(os.path.dirname(filename_slug), exist_ok=True)
+    with open(filename_slug, "w", encoding="utf-8") as f:
+        f.write(post_content)
+    print(f"Successfully generated: {filename_slug}")
+
+if __name__ == "__main__":
+    generate_natural_blog()
