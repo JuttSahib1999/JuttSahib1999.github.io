@@ -1,0 +1,38 @@
+name: Generate AI Blog Post
+
+on:
+  schedule:
+    - cron: '0 5 * * *' # Runs every day at 4:00 AM UTC (which is 9:00 AM Pakistan Time)
+  workflow_dispatch: # Allows manual trigger from GitHub UI anytime
+
+permissions:
+  contents: write # Required to push the new markdown file back to the repo
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install Dependencies
+        run: |
+          pip install google-generativeai
+
+      - name: Run AI Blog Generator Script
+        env:
+          AI_API_KEY: ${{ secrets.AI_API_KEY }}
+        run: |
+          python scripts/generate_blog.py
+
+      - name: Commit and Push New Blog Post
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add src/content/blog/
+          git diff --quiet && git diff --staged --quiet || (git commit -m "content: auto-generate daily security blog post" && git push)
