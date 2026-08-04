@@ -3,8 +3,11 @@ import datetime
 from google import genai
 
 def generate_natural_blog():
-    # Initialize the modern Google GenAI client using the environment variable
-    client = genai.Client(api_key=os.environ["AI_API_KEY"])
+    api_key = os.environ.get("AI_API_KEY")
+    if not api_key:
+        raise ValueError("Error: AI_API_KEY environment variable is missing or not set in GitHub repository secrets.")
+
+    client = genai.Client(api_key=api_key)
     
     prompt = """
     You are a cyber security professional and systems analyst. 
@@ -28,20 +31,23 @@ def generate_natural_blog():
     [Your markdown content here]
     """
     
-    # Generate content using gemini-2.5-flash
-    response = client.models.generate_content(
-        model='gemini-2.5-flash',
-        contents=prompt,
-    )
-    post_content = response.text
+    try:
+        # Updated model to gemini-3.6-flash which is fully supported
+        response = client.models.generate_content(
+            model='gemini-3.6-flash',
+            contents=prompt,
+        )
+        post_content = response.text
+    except Exception as e:
+        print(f"Failed to generate content from Gemini API: {e}")
+        raise e
     
     today_str = datetime.datetime.now().strftime("%Y-%m-%d")
     post_content = post_content.replace("CURRENT_DATE_PLACEHOLDER", today_str)
     
-    # Save directly into your Astro content collection folder
     filename_slug = f"src/content/blog/{today_str}-security-insight.md"
-    
     os.makedirs(os.path.dirname(filename_slug), exist_ok=True)
+    
     with open(filename_slug, "w", encoding="utf-8") as f:
         f.write(post_content)
     print(f"Successfully generated: {filename_slug}")
