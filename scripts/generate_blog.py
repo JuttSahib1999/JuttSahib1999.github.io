@@ -1,12 +1,10 @@
 import os
 import datetime
-import google.generativeai as genai
-
-# Configure your Gemini API key from environment variables
-genai.configure(api_key=os.environ["AI_API_KEY"])
+from google import genai
 
 def generate_natural_blog():
-    model = genai.GenerativeModel('gemini-2.5-flash')
+    # Initialize the modern Google GenAI client using the environment variable
+    client = genai.Client(api_key=os.environ["AI_API_KEY"])
     
     prompt = """
     You are a cyber security professional and systems analyst. 
@@ -30,7 +28,11 @@ def generate_natural_blog():
     [Your markdown content here]
     """
     
-    response = model.generate_content(prompt)
+    # Generate content using gemini-2.5-flash
+    response = client.models.generate_content(
+        model='gemini-2.5-flash',
+        contents=prompt,
+    )
     post_content = response.text
     
     today_str = datetime.datetime.now().strftime("%Y-%m-%d")
