@@ -1,7 +1,7 @@
 ---
 title: "Getting Started with SOC Analysis"
 description: "A beginner-friendly guide to understanding Security Operations Center workflows, tools, and career paths."
-date: 2025-01-15
+date: 2026-03-15
 tags: ["SOC", "Beginner", "Career"]
 category: "Security Operations"
 ---
