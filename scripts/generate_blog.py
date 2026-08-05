@@ -1,6 +1,20 @@
 import os
 import datetime
 from google import genai
+from google.genai.errors import ServerError
+from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
+
+# Automatically retry up to 4 times with exponential backoff if a 503/Server error occurs
+@retry(
+    retry=retry_if_exception_type(ServerError),
+    stop=stop_after_attempt(4),
+    wait=wait_exponential(multiplier=2, min=4, max=30)
+)
+def generate_content_with_retry(client, model, contents):
+    return client.models.generate_content(
+        model=model,
+        contents=contents,
+    )
 
 def generate_natural_blog():
     api_key = os.environ.get("AI_API_KEY")
@@ -32,14 +46,15 @@ def generate_natural_blog():
     """
     
     try:
-        # Updated model to gemini-3.6-flash which is fully supported
-        response = client.models.generate_content(
+        # Calls the API with automatic retry logic for temporary 503 spikes
+        response = generate_content_with_retry(
+            client=client,
             model='gemini-3.6-flash',
-            contents=prompt,
+            contents=prompt
         )
         post_content = response.text
     except Exception as e:
-        print(f"Failed to generate content from Gemini API: {e}")
+        print(f"Failed to generate content from Gemini API after multiple retries: {e}")
         raise e
     
     today_str = datetime.datetime.now().strftime("%Y-%m-%d")
