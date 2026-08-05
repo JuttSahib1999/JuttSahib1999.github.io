@@ -1,7 +1,7 @@
 ---
 title: "Bypassing the Kernel: Analyzing and Detecting eBPF-Based Rootkits"
 description: "A practical guide to understanding how attackers exploit Linux eBPF for persistent kernel-level evasion and how detection engineers can surface these covert programs."
-date: "2024-05-15"
+date: "2026-08-05"
 tags: ["Linux Security", "eBPF", "Rootkits", "Threat Detection", "Kernel Security"]
 category: "Cyber Security"
 ---
@@ -105,7 +105,7 @@ bpftool prog list
 Example Output:
 ```text
 12: kprobe  name handle_getdents  tag a0b1c2d3e4f56789  gpl
-	loaded_at 2024-05-15T10:14:22+0000  uid 0
+	loaded_at 2026-08-05T10:14:22+0000  uid 0
 	xlated 248B  jited 142B  memlock 4096B  map_ids 5
 ```
 
