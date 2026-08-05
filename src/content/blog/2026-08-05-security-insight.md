@@ -1,143 +1,177 @@
 ---
-title: "Defeating EDR Unhooking and Direct Syscalls: Advanced Memory Detection Strategies"
-description: "A technical breakdown of user-mode EDR evasion using NTDLL unhooking and indirect syscalls, paired with concrete detection strategies using kernel callbacks, ETW Threat Intelligence, and call stack inspection."
-date: "2024-03-15"
-tags: ["Cybersecurity", "Threat Detection", "Endpoint Security", "Windows Internals"]
+title: "Bypassing the Kernel: Analyzing and Detecting eBPF-Based Rootkits"
+description: "A practical guide to understanding how attackers exploit Linux eBPF for persistent kernel-level evasion and how detection engineers can surface these covert programs."
+date: "2024-05-15"
+tags: ["Linux Security", "eBPF", "Rootkits", "Threat Detection", "Kernel Security"]
 category: "Cyber Security"
 ---
 
-Endpoint Detection and Response (EDR) agents have long relied on user-mode API hooking to inspect runtime process behavior. By injecting a DLL into user-space processes and patching native API functions inside `ntdll.dll` with unconditional jumps (`jmp`), security products redirect execution flow to their inspection engines before allowing the underlying system call to execute.
+Extended Berkeley Packet Filter (eBPF) has fundamentally altered Linux observability, networking, and security tooling. By allowing sandboxed programs to run directly within the kernel without recompiling modules or loading volatile third-party kernel drivers (`kmods`), eBPF provides unparalleled access to system internals.
 
-However, offensive tooling has evolved to routinely bypass user-mode telemetry. Techniques such as NTDLL unhooking, direct system calls (syscalls), and indirect syscalls render user-mode hooks effectively invisible. 
+However, the same characteristics that make eBPF valuable for performance monitoring make it highly dangerous when weaponized by an attacker who has already obtained `CAP_SYS_ADMIN` or root privileges. eBPF-based rootkits can manipulate syscall outputs, hide processes, inspect raw socket traffic, and bypass traditional User-Space EDR mechanisms—all while leaving zero trace on the filesystem and refusing to register as conventional loaded kernel modules (`lsmod`).
 
-For threat detectors and SOC engineers, relying solely on user-mode telemetry creates critical blind spots. This analysis breaks down how these bypass mechanisms function at the assembly level and provides practical, kernel-level and memory-based detection strategies to catch them.
-
----
-
-## The Failure Model of User-Mode Hooking
-
-When a Windows application requires kernel execution (such as allocating virtual memory via `NtAllocateVirtualMemory` or creating a remote thread via `NtCreateThreadEx`), it routes the request through `ntdll.dll`. 
-
-In an environment monitored by an EDR using user-mode hooks, the standard flow is altered:
-
-1. The application calls `VirtualAllocEx`.
-2. `kernel32.dll` / `KernelBase.dll` forwards the call to `ntdll.dll!NtAllocateVirtualMemory`.
-3. The patched `NtAllocateVirtualMemory` function executes an inline `jmp` instruction pointing to the EDR's injected DLL (e.g., `edr_mon.dll`).
-4. The EDR inspects the parameters, call stack, and context.
-5. If clean, the EDR executes the original System Service Number (SSN) setup and issues the `syscall` instruction.
-
-Adversaries operating inside an infected process have full read/write/execute permissions over their own process memory space. Because user-mode hooks exist inside the user-mode address space, the process can overwrite, modify, or completely bypass those hooks without requiring elevated privileges.
+This article breaks down how eBPF rootkits operate under the hood, why traditional detection controls fail to spot them, and how system administrators and SOC teams can build effective detection engineering strategies against them.
 
 ---
 
-## Evasion Mechanics Breakdown
+## Anatomy of an eBPF Exploitation Primitive
 
-### 1. NTDLL Unhooking
-The simplest bypass involves restoring the hooked `ntdll.dll` code section (`.text`) back to its original state on disk. Adversaries perform this by:
+To understand how an attacker uses eBPF defensively or offensively, we must look at how programs are loaded and attached within the Linux kernel.
 
-* Mapping a fresh, unhooked copy of `ntdll.dll` directly from disk into memory (`CreateFileA` + `MapViewOfFile`).
-* Reading the clean `.text` section from the fresh mapping.
-* Overwriting the hooked `.text` section of the currently loaded `ntdll.dll` in memory using `VirtualProtect` to temporarily grant write permissions.
+An eBPF program is compiled from C into eBPF bytecode (often via Clang/LLVM), verified for safety by the kernel verifier, and Just-In-Time (JIT) compiled into native machine code. The program is then attached to a kernel hook point.
 
-Once replaced, the EDR's `jmp` instructions are wiped, restoring standard Windows Native API behavior and silencing user-mode telemetry.
-
-### 2. Direct Syscalls
-Instead of fixing `ntdll.dll`, direct syscall techniques bypass the DLL altogether. Red teams write custom assembly stubs that dynamically resolve or hardcode the target function's SSN and execute the `syscall` instruction directly.
-
-```assembly
-; Direct Syscall Stub for NtAllocateVirtualMemory (x64)
-mov r10, rcx
-mov eax, 0x0018  ; SSN for NtAllocateVirtualMemory (varies by OS build)
-syscall
-ret
+```
++-------------------------------------------------------------------+
+|                            User Space                             |
+|  [Attacker Control / Malware]        [Security Agent / EDR]       |
++-------------------------------------------------------------------+
+                               | (sys_bpf)
+                               v
++-------------------------------------------------------------------+
+|                            Kernel Space                           |
+|                                                                   |
+|   +-----------------------+     +-----------------------------+   |
+|   |   eBPF JIT Engine     | --> | Pinned Maps (/sys/fs/bpf)   |   |
+|   +-----------------------+     +-----------------------------+   |
+|               |                                                   |
+|   Hooks:      +---> [ Tracepoints ] (e.g., sys_enter_execve)      |
+|               +---> [ Kprobes/Kretprobes ] (e.g., sys_getdents64) |
+|               +---> [ XDP / TC ] (Raw network packets)            |
++-------------------------------------------------------------------+
 ```
 
-Because execution never passes through `ntdll.dll`, user-mode hooks are never triggered.
+Attackers primarily target three hook types:
 
-### 3. Indirect Syscalls
-Modern security tools adapted to direct syscalls by scanning running processes for `syscall` assembly instructions residing outside the memory bounds of `ntdll.dll`. To counter this, adversaries transitioned to **indirect syscalls** (popularized by tools like Syswhispers3 and RecycledGate).
+1. **Kprobes and Kretprobes:** Attached to dynamic kernel function entry points and returns.
+2. **Tracepoints:** Static hooks hardcoded into kernel events.
+3. **XDP (eXpress Data Path) & Traffic Control (TC):** Hooks running at the lowest layers of the network stack, processing packets prior to sk_buff allocation.
 
-Instead of issuing `syscall` directly from the custom assembly stub, the stub sets up the registers and executes a `jmp` instruction to a valid `syscall; ret` gadget already residing inside the legitimate, disk-backed `ntdll.dll` memory space.
+### Evasion Techniques Executed in Kernel Space
 
-```assembly
-; Indirect Syscall Stub
-mov r10, rcx
-mov eax, 0x0018        ; SSN
-jmp qword ptr [gadget]  ; Points to a 'syscall; ret' address inside ntdll.dll
-```
+Once attached, an malicious eBPF program can alter runtime execution in several ways:
 
-This trick satisfies simple checks looking for execution of `syscall` from unmapped or non-NTDLL memory, making the call appear legitimate at first glance.
+#### 1. Process and File Hiding via `sys_getdents64`
+Commands like `ls`, `ps`, and `top` rely on the `sys_getdents64` system call to read directory entries (such as `/proc`). An attacker attaches a `kretprobe` to `sys_getdents64`. When the system call returns directory structures to user space, the attached eBPF program uses helper functions like `bpf_probe_write_user` to overwrite the returning buffer, effectively stripping target process IDs (PIDs) or filenames out of the array before the user-space process receives it.
+
+#### 2. Credential Hijacking via `sys_enter_execve`
+By placing a tracepoint on `sys_enter_execve` or `sys_enter_write`, an eBPF program can copy memory buffers containing authentication tokens, passwords, or SSH keys directly into an eBPF map shared with a covert user-space receiver, completely bypassing audit logs (`auditd`).
+
+#### 3. Network Traffic Obfuscation via XDP
+An eBPF program loaded at the network driver layer using XDP can inspect incoming network packets before `iptables`, `nftables`, or packet-capturing tools like `tcpdump` process them. The rootkit can intercept custom command-and-control (C2) packets, drop them before logging occurs, or craft responses entirely inside the kernel.
 
 ---
 
-## Defensive Engineering: Catching User-Mode Bypasses
+## Defensive Visibility Gaps
 
-To catch advanced threat actors using these techniques, security teams must shift telemetry collection to the kernel and implement post-exploitation memory analytics.
+Why do standard security products miss these artifacts?
 
+* **No File Artifacts Required:** eBPF programs live entirely in kernel memory once loaded. If an attacker deletes the loader executable after executing the `sys_bpf` call, traditional disk-scanning antivirus engine alerts will not fire.
+* **Kernel Module Blindness:** Commands like `lsmod` query `module_list` pointers in the kernel. eBPF programs do not register as LKM (Loadable Kernel Modules).
+* **Bypassing `auditd`:** Because the manipulation occurs inside kernel memory *after* system call arguments are parsed or *before* user-space returns are rendered, system call logging frameworks like `auditd` may reflect clean execution parameters while the application actually consumes mutated data.
+
+---
+
+## Technical Detection Strategies
+
+Detecting eBPF rootkits requires moving operational controls closer to kernel state inspection and auditing the `bpf()` system call execution itself.
+
+### 1. Auditing the `bpf` System Call
+
+The `bpf` syscall (`sys_bpf`, syscall number 321 on x86_64) is required to perform operations like program loading (`BPF_PROG_LOAD`) and map creation (`BPF_MAP_CREATE`).
+
+You can enforce telemetry around this call using audit rules (`/etc/audit/rules.d/audit.rules`):
+
+```bash
+# Monitor the bpf() system call for 64-bit architectures
+-a always,exit -F arch=b256 -S bpf -F key=ebpf_activation
+# Monitor loading of kernel modules as a baseline comparison
+-w /sbin/insmod -p x -k module_insertion
+-w /sbin/rmmod -p x -k module_insertion
+-w /sbin/modprobe -p x -k module_insertion
 ```
-       [ User Mode ]                     [ Kernel Mode ]
-+-------------------------+       +---------------------------+
-| Malicious Process       |       | Kernel Subsystems         |
-|  - Custom Syscall Stub  | ----> |  - System Service Table   |
-|  - Unhooked NTDLL       |       +---------------------------+
-+-------------------------+                     |
-                                                v
-                                  +---------------------------+
-                                  | ETW Threat Intelligence   |
-                                  | Kernel Callbacks          |
-                                  +---------------------------+
+
+When an unverified binary invokes `bpf()` to load bytecode, `auditd` records the process context, UID, command line, and executable path.
+
+### 2. Inspecting Loaded eBPF Programs via `bpftool`
+
+The standard utility for inspecting active eBPF structures is `bpftool`. Security teams should periodically poll active programs and maps via scheduled tasks or custom agents.
+
+To list all running eBPF programs currently loaded in memory:
+
+```bash
+bpftool prog list
 ```
 
-### 1. ETW Threat Intelligence (ETW-TI)
-Event Tracing for Windows Threat Intelligence (ETW-TI) is a kernel-level provider (`Microsoft-Windows-Threat-Intelligence`) designed specifically to monitor behavior at the kernel boundary. Because it operates inside kernel space, user-mode unhooking has zero impact on its visibility.
+Example Output:
+```text
+12: kprobe  name handle_getdents  tag a0b1c2d3e4f56789  gpl
+	loaded_at 2024-05-15T10:14:22+0000  uid 0
+	xlated 248B  jited 142B  memlock 4096B  map_ids 5
+```
 
-Key events to monitor include:
-* **`KERNEL_THREATINT_TASK_ALLOCVM`**: Triggers on kernel-level virtual memory allocation.
-* **`KERNEL_THREATINT_TASK_PROTECTVM`**: Triggers on memory permission changes (e.g., transitioning memory from `PAGE_READWRITE` to `PAGE_EXECUTE_READWRITE`).
-* **`KERNEL_THREATINT_TASK_READWRITEVM`**: Captures `NtReadVirtualMemory` and `NtWriteVirtualMemory` execution across process boundaries (process injection).
+Pay specific attention to programs attached to `kprobe` or `kretprobe` types without a recognized application owner (e.g., system observability tools like Cilium, Datadog, or Falco).
 
-**Implementation Action:** Ensure your endpoint agent utilizes kernel-level ETW-TI telemetry rather than solely relying on `SetWindowsHookEx` or API inline patching.
+To inspect the raw byte instruction set of a suspicious program ID:
 
-### 2. Kernel Callbacks
-Kernel drivers allow security products to register callbacks that run whenever specific operations occur within the operating system, regardless of how the user-mode application requested the action.
+```bash
+bpftool prog dump xlated id 12
+```
 
-* **`ObRegisterCallbacks`**: Triggers on handle creation/duplication. When an adversary attempts to obtain a handle with `PROCESS_ALL_ACCESS` or `PROCESS_VM_WRITE` to perform injection, this callback fires at the kernel level.
-* **`PsSetCreateProcessNotifyRoutineEx`**: Tracks process creation.
-* **`PsSetCreateThreadNotifyRoutine`**: Tracks thread creation, catching remote thread injection (`NtCreateThreadEx`) even if called via indirect syscalls.
+To view attached hooks system-wide via the tracing filesystem:
 
-### 3. Call Stack spoofing & Unbacked Memory Detection
-Even if an adversary uses indirect syscalls to execute a valid `syscall` instruction within `ntdll.dll`, the **Call Stack** often reveals anomalous context.
+```bash
+cat /sys/kernel/debug/tracing/kprobe_events
+```
 
-When inspecting suspicious execution events (such as thread creation or remote allocation), perform automated call stack unwinding:
+If an entry in `kprobe_events` points to memory locations or symbols associated with process iteration or network handling without a clear software lineage, flag it for immediate triage.
 
-* **Unbacked Memory Execution:** Check if the caller or return addresses on the stack point to unbacked memory space (memory allocated dynamically with `VirtualAlloc` that does not map to a real `.dll` or `.exe` file on disk).
-* **Return Address Anomalies:** For indirect syscalls, verify if the frame preceding the `ntdll.dll` syscall instruction originates from an unexpected, non-module address space.
-* **Stack Spoofing Detection:** Compare `RSP` (Stack Pointer) alignment and ensure stack frame frames correspond to valid `CALL` instructions rather than synthetic frames created to mimic legitimate execution flow.
+### 3. Monitoring Pinned eBPF Filesystems
 
-### 4. Memory Integrity Scanning (PE-Sieve / YARA)
-Regular, heuristic-based memory scans running in security automation pipelines can detect unhooking activity and suspicious execution stubs:
+eBPF programs often use pinned maps to retain state across user-space loader restarts. These are stored within pseudo-filesystems, typically mounted at `/sys/fs/bpf`.
 
-* **Detecting NTDLL Patching/Restoration:** Compare in-memory `.text` sections of critical DLLs against the clean copy stored in `C:\Windows\System32\ntdll.dll`. Discrepancies indicate unhooking or inline hooking bypasses.
-* **Scanning for Assembly Patterns:** Run YARA rules across process memory targeting byte patterns characteristic of direct syscall stubs:
+Check for unexpected mounts and pinned files:
 
-```yara
-rule Direct_Syscall_Stub {
-    meta:
-        description = "Detects standalone x64 syscall stubs in execution space"
-        author = "Security Operations Analyst"
-    strings:
-        // mov r10, rcx; mov eax, SSN; syscall; ret
-        $syscall_x64 = { 49 89 CA B8 ?? ?? 00 00 0F 05 C3 }
-    condition:
-        $syscall_x64 in (0..filesize)
-}
+```bash
+find /sys/fs/bpf/ -type f -exec ls -la {} +
 ```
 
 ---
 
-## Operational Takeaways for SOC and Detection Teams
+## Defensive Engineering and Hardening Controls
 
-1. **Audit Agent Capabilities:** Review your endpoint security stack. Determine explicitly which telemetry sources are derived from user-mode hooks versus kernel-level drivers or ETW-TI.
-2. **Alert on Suspicious Memory Allocations:** Focus analytics on memory protection transitions (`PAGE_EXECUTE_READWRITE` / `0x40`). Legitimate software rarely requires memory space that is simultaneously writable and executable.
-3. **Monitor NTDLL In-Memory Modifications:** Implement baseline alerts for processes modifying their own `ntdll.dll` `.text` section permissions via `NtProtectVirtualMemory`.
-4. **Enforce Call Stack Visibility:** Ensure your Threat Detection / EDR platform exposes raw call stacks for high-risk process operations, allowing analysts to triage unbacked memory structures effectively.
+To prevent eBPF abuse entirely or severely limit its attack surface, implement the following architectural restrictions:
+
+### Disable Unprivileged eBPF
+Ensure unprivileged users cannot execute `bpf` calls. By default, modern enterprise Linux distributions restrict this, but it must be explicitly validated.
+
+Check current state:
+```bash
+sysctl kernel.unprivileged_bpf_disabled
+```
+
+Enforce restriction via sysctl configuration (`/etc/sysctl.d/99-security.conf`):
+```ini
+kernel.unprivileged_bpf_disabled = 1
+```
+
+### Restrict CAP_SYS_ADMIN / CAP_BPF in Containers
+Do not grant `CAP_SYS_ADMIN` or `CAP_BPF` Linux capabilities to containerized workloads unless strictly necessary. Without these capabilities, processes inside container namespaces cannot load kernel-level eBPF programs or inspect host-level telemetry.
+
+### Enforce BPF LSM (Linux Security Module)
+Modern Linux kernels (>= 5.7) include the BPF LSM framework. This allows security tools to control eBPF system calls using eBPF itself. You can enforce policies that restrict `BPF_PROG_LOAD` operations exclusively to signed executables or binaries located in root-owned, write-protected directories.
+
+Ensure `bpf` is enabled in your bootloader options (`/etc/default/grub`):
+```text
+GRUB_CMDLINE_LINUX_DEFAULT="... lsm=landlock,lockdown,yama,bpf"
+```
+
+---
+
+## Key Takeaways for Security Teams
+
+eBPF is not inherently a vulnerability; it is a powerful kernel functionality. However, as defensive tools rely more heavily on eBPF for deep visibility, attackers are leveraging the exact same subsystems to obscure their presence.
+
+* **Audit execution:** Collect events on `sys_bpf` execution; do not rely strictly on process creation logs.
+* **Inventory baseline hooks:** Document which legitimate applications (EDR, CNI plugins) maintain loaded eBPF programs in your environment.
+* **Integrate `bpftool` telemetry:** Include eBPF program listings and map metrics in host baseline configuration checks and forensic triage playbooks.
+* **Principle of Least Privilege:** Strictly limit `CAP_BPF` and `CAP_SYS_ADMIN` across all production host environments and container instances.
