@@ -4,6 +4,7 @@ const USERNAME = 'JuttSahib1999';
 // Repositories that should NOT appear in the Projects page
 const HIDDEN_REPOSITORIES = [
   'JuttSahib1999.github.io',
+  'JuttSahib1999',
 ];
 
 // Helper to add delay between retries
