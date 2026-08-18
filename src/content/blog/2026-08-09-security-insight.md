@@ -1,7 +1,7 @@
 ---
 title: "Defending Against AiTM Phishing: Telemetry, Token Theft Analysis, and Hardening Strategies"
 description: "An operational breakdown of Adversary-in-the-Middle reverse proxy attacks, session token theft telemetry, and practical mitigations using WebAuthn and Conditional Access."
-date: "2024-10-24"
+date: "2026-08-09"
 tags: ["Identity Security", "Detection Engineering", "Entra ID", "Threat Hunting"]
 category: "Cyber Security"
 ---

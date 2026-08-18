@@ -1,7 +1,7 @@
 ---
 title: "Deep-Dive: Engineering Linux Threat Detection with eBPF and BTF"
 description: "An architectural breakdown of Extended Berkeley Packet Filter (eBPF) for runtime security, exploring kernel-level instrumentation, CO-RE, and detection patterns for container breakout vectors."
-date: "2023-10-25"
+date: "2026-08-11"
 tags: ["eBPF", "Linux Security", "Threat Detection", "Runtime Observability"]
 category: "Cyber Security"
 ---

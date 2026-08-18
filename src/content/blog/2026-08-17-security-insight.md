@@ -1,7 +1,7 @@
 ---
 title: "Mitigating Adversary-in-the-Middle (AiTM) and Session Token Hijacking in Cloud Identity Environments"
 description: "A technical breakdown of how threat actors bypass MFA using AiTM reverse proxies and session theft, alongside practical detection engineering and architectural controls for Microsoft Entra ID."
-date: "2024-05-18"
+date: "2026-08-17"
 tags: ["Identity Security", "Cloud Security", "Threat Detection", "Entra ID"]
 category: "Cyber Security"
 ---

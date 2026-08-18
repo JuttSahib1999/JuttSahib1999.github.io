@@ -1,7 +1,7 @@
 ---
 title: "Dissecting BYOVD Attacks: Neutralizing Kernel-Level EDR Evasion"
 description: "A technical breakdown of Bring Your Own Vulnerable Driver (BYOVD) tactics used to terminate security agents, alongside kernel memory mechanics and actionable detection strategies."
-date: "2026-03-30"
+date: "2026-08-04"
 tags: ["Threat Hunting", "Kernel Security", "EDR Evasion", "Windows Internals"]
 category: "Cyber Security"
 ---

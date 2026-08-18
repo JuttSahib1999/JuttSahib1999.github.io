@@ -1,7 +1,7 @@
 ---
 title: "Analyzing eBPF-Based Persistence and Rootkits: Detection, Telemetry, and Mitigation Strategies"
 description: "A technical analysis of how adversaries leverage extended Berkeley Packet Filter (eBPF) for stealthy kernel-level persistence, alongside concrete forensic detection and mitigation strategies for Linux environments."
-date: "2026-03-30"
+date: "2026-08-06"
 tags: ["Linux Security", "Threat Detection", "Kernel Security"]
 category: "Cyber Security"
 ---

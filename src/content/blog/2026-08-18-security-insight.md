@@ -1,7 +1,7 @@
 ---
 title: "Dismantling Session Hijacking: Detecting and Mitigating OAuth Token Theft in Identity Environments"
 description: "A technical breakdown of Adversary-in-the-Middle (AitM) session theft, focusing on token extraction mechanics, KQL detection strategies, and Continuous Access Evaluation hardening."
-date: "2026-03-31"
+date: "2026-08-18"
 tags: ["Cybersecurity", "Threat Detection", "Security Operations"]
 category: "Cyber Security"
 ---

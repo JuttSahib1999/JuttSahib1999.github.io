@@ -1,7 +1,7 @@
 ---
 title: "Dissecting Cloud Session Hijacking: Token Theft Mechanics and Practical Detection Engineering"
 description: "An in-depth analysis of adversary tactics for stealing session cookies and OAuth tokens to bypass MFA, paired with actionable detection queries and architectural mitigations."
-date: "2023-10-27"
+date: "2026-08-12"
 tags: ["Identity Security", "Cloud Security", "Threat Detection", "Incident Response"]
 category: "Cyber Security"
 ---

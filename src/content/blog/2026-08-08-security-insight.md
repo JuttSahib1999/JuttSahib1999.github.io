@@ -1,7 +1,7 @@
 ---
 title: "Deconstructing Indirect Syscalls: Bypassing User-Land EDR Hooks and Building Stack-Aware Detections"
 description: "A technical analysis of how modern adversaries leverage indirect system calls to bypass user-mode EDR hooks, and how detection engineers can leverage kernel telemetry and stack walk analysis to spot them."
-date: "2023-10-25"
+date: "2026-08-08"
 tags: ["Cybersecurity", "Threat Detection", "Security Operations", "EDR Bypass", "Windows Internals"]
 category: "Cyber Security"
 ---

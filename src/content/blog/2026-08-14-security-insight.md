@@ -1,7 +1,7 @@
 ---
 title: "Bypassing EDR Hooks via Indirect Syscalls: Mechanics and Detection Strategies"
 description: "An operational deep dive into modern endpoint detection bypasses using indirect system calls, detailing execution mechanics, stack telemetry anomalies, and practical engineering controls for threat hunters."
-date: "2024-05-20"
+date: "2026-08-14"
 tags: ["EDR", "Windows Internals", "Threat Detection", "Detection Engineering"]
 category: "Cyber Security"
 ---

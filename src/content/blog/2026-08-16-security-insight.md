@@ -1,7 +1,7 @@
 ---
 title: "Kernel-Level Evasion: Analyzing eBPF Weaponization and Detection Strategies"
 description: "An in-depth technical analysis of how adversaries leverage extended Berkeley Packet Filters (eBPF) for stealth persistence and evasive kernel execution, alongside practical detection strategies."
-date: "2026-03-30"
+date: "2026-08-16"
 tags: ["Linux Security", "eBPF", "Threat Detection", "Kernel Security"]
 category: "Cyber Security"
 ---

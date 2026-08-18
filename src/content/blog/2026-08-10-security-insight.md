@@ -1,7 +1,7 @@
 ---
 title: "Detecting and Mitigating eBPF-Based Rootkits in Enterprise Linux Environments"
 description: "A technical dive into how attackers abuse extended Berkeley Packet Filter (eBPF) for stealthy kernel-level persistence and evasion, along with actionable detection engineering strategies."
-date: "2024-03-29"
+date: "2026-08-10"
 tags: ["Linux Security", "Threat Detection", "eBPF", "Detection Engineering"]
 category: "Cyber Security"
 ---
