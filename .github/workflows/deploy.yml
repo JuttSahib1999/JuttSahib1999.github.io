@@ -64,7 +64,7 @@ jobs:
       # ----------------------------------------------------------
       # Build Astro website
       #
-      # GITHUB_PAT is supplied ONLY during the server-side build.
+      # GH_PAT is supplied ONLY during the server-side build.
       #
       # It is NOT placed into the generated website.
       # ----------------------------------------------------------
@@ -73,7 +73,7 @@ jobs:
         run: npm run build
         env:
           NODE_ENV: production
-          GITHUB_PAT: ${{ secrets.GITHUB_PAT }}
+          GH_PAT: ${{ secrets.GH_PAT }}
 
       # ----------------------------------------------------------
       # Upload Astro dist/ directory to GitHub Pages
