@@ -1,145 +1,220 @@
 ---
-title: "Dismantling Session Hijacking: Detecting and Mitigating OAuth Token Theft in Identity Environments"
-description: "A technical breakdown of Adversary-in-the-Middle (AitM) session theft, focusing on token extraction mechanics, KQL detection strategies, and Continuous Access Evaluation hardening."
+title: "Detecting DCSync Attacks: Auditing Directory Replication and RPC Telemetry"
+description: "A practical guide to understanding DCSync mechanics, configuring Active Directory audit policies, and writing high-fidelity detections using Windows Security Event logs and RPC network telemetry."
 date: "2026-08-18"
-tags: ["Cybersecurity", "Threat Detection", "Security Operations"]
+tags: ["Active Directory", "Threat Detection", "Security Operations", "Incident Response"]
 category: "Cyber Security"
+difficulty: "Intermediate"
+author: "Abdul Muqeet Tabraiz"
+image: "/images/blog/2026-08-18-detecting-dcsync-attacks-auditing-directory-replication-and-rpc-telemetry.svg"
 ---
 
-Multi-Factor Authentication (MFA) is no longer a stopgap for identity-based attacks. As organizations have scaled MFA deployment across enterprise Identity Providers (IdPs) like Microsoft Entra ID and Okta, threat actors have pivoted from brute-force credential attacks to post-authentication session theft. 
+When an adversary gains domain administrative rights or compromises an account with extended directory permissions, traditional credential harvesting techniques like LSASS memory dumping on a local host are often unnecessary. Instead, attackers can pull password hashes directly from a Domain Controller (DC) over the network without executing code on the DC itself.
 
-Adversary-in-the-Middle (AitM) phishing frameworks—such as Evilginx3, Muraena, and Modlishka—allow attackers to bypass traditional MFA, capture session tokens, and establish persistent access without triggering standard failed-login alerts.
+This technique, known as DCSync, leverages legitimate Active Directory replication protocols to request secret data—including NTLM hashes, Kerberos keys, and AES keys for any account in the domain. 
 
-This analysis breaks down the mechanics of AitM token theft, details how to build high-fidelity detection queries in SIEM tooling, and outlines architectural controls to reduce session hijacking exposure.
-
----
-
-## Attack Mechanics: Adversary-in-the-Middle (AitM) Architecture
-
-Traditional phishing lures users to a static fake page that captures static credentials. AitM frameworks operate as reverse proxies positioned between the target user and the legitimate IdP authentication endpoint.
-
-```
-[ Victim Browser ] <---> [ Threat Actor Reverse Proxy ] <---> [ Legitimate IdP Endpoint ]
-                                (Evilginx3)
-```
-
-### 1. Proxying and Handshake Negotiation
-1. The victim clicks a tailored phishing link containing an encoded tracking payload.
-2. The attacker's proxy intercepts the connection, dynamically fetching and rendering the real login page from the IdP.
-3. The victim inputs their primary credentials and completes the MFA challenge (authenticator push, SMS, or TOTP).
-4. The proxy forwards these responses to the actual IdP in real time.
-
-### 2. Token Extraction and Replay
-Once authentication succeeds, the IdP issues session tokens (such as `ESTSAuth` and `ESTSAUTHPERSISTENT` cookies in Entra ID, or `sid` cookies in Okta) alongside OAuth 2.0 refresh tokens. 
-
-The proxy intercepts the HTTP response headers before they reach the victim's browser, extracts these sensitive cookie strings, and writes them to an attacker-controlled database. The attacker can then inject these stolen tokens into a clean browser instance, bypassing password checks and MFA prompts entirely.
+For security operations center (SOC) analysts and detection engineers, DCSync is a critical threat vector to monitor. Detecting it reliably requires understanding how the Directory Replication Service (DRS) Remote Protocol operates, which Windows Audit Policies capture these actions, and how to separate attacker activity from legitimate replication traffic.
 
 ---
 
-## Engineering High-Fidelity Detections
+## How DCSync Works
 
-Because AitM attacks use valid credentials and yield successful authentication responses from the IdP's perspective, detecting them requires telemetry correlation across session properties rather than relying on failed authentication events.
+DCSync simulates the behavior of a legitimate Domain Controller attempting to replicate directory data. It relies on the **Directory Replication Service Remote Protocol (MS-DRSR)** via RPC interfaces to interact with the Active Directory database (`NTDS.dit`).
 
-### Primary Telemetry Indicators
+When a legitimate DC needs to sync account updates with another DC, it invokes the `IDL_DRSGetNCChanges` RPC function. In response, the target DC returns naming context updates, which include user attributes, password hashes, and history.
 
-* **User-Agent & TLS Fingerprint Mismatches:** A sudden change in JA3/JA4 fingerprints or Client User-Agent strings within the same session lifetime.
-* **Anomalous ASN/IP Velocity:** Session creation originating from an IP associated with hosting providers (e.g., DigitalOcean, Linode, AWS) or residential proxy networks immediately followed by resource access from a different geographic location.
-* **Device Compliance Gaps:** Successful sign-ins originating from unmanaged or non-compliant devices targeting high-value enterprise applications.
+An attacker executing a DCSync request (typically using tools like Mimikatz or Impacket's `secretsdump.py`) does not need to compromise the physical or virtual DC host. They only need access to a security principal (user or computer account) that possesses three specific Extended Rights on the Domain Object:
 
-### Detection via Kusto Query Language (KQL)
+1. **DS-Replication-Get-Changes**  
+   `GUID: 1131f6aa-9c0e-11d1-bf38-00c04fa93864`
+2. **DS-Replication-Get-Changes-All**  
+   `GUID: 1131f6ad-9c0e-11d1-bf38-00c04fa93864`
+3. **DS-Replication-Get-Changes-In-Filtered-Set** (Required in specific environments, such as RODC read access)  
+   `GUID: 89e12b03-ade3-11d6-bf77-00c04fa93864`
 
-The following query correlates Entra ID `SigninLogs` to flag sessions where an initial sign-in occurred from an untrusted or non-compliant device, accompanied by anomalous IP shifts within a 15-minute window:
+By default, members of the **Domain Admins**, **Enterprise Admins**, **Administrators**, and **Domain Controllers** groups have these permissions delegated. If an attacker controls an account within these groups—or an account that has been explicitly granted these rights via Access Control Lists (ACLs)—they can issue replication requests remotely.
 
-```kusto
-// Detect potential AitM Session Theft via IP and Device Context Anomalies
-let TimeFrame = 24h;
-let LookbackWindow = 15m;
-SigninLogs
-| where TimeGenerated >= ago(TimeFrame)
-| where ResultType == 0 // Successful sign-ins
-| extend DeviceId = tostring(DeviceDetail.deviceId)
-| extend IsCompliant = tobool(DeviceDetail.isCompliant)
-| extend IsManaged = tobool(DeviceDetail.isManaged)
-| project TimeGenerated, UserPrincipalName, IPAddress, Location, AppDisplayName, ClientAppUsed, UserAgent, DeviceId, IsCompliant, IsManaged, CorrelationId
-| join kind=inner (
-    SigninLogs
-    | where TimeGenerated >= ago(TimeFrame)
-    | where ResultType == 0
-    | project SecondaryTime = TimeGenerated, UserPrincipalName, SecondaryIP = IPAddress, SecondaryLocation = Location, SecondaryUserAgent = UserAgent, SecondaryCorrelationId = CorrelationId
-) on UserPrincipalName
-| where SecondaryTime > TimeGenerated and SecondaryTime <= TimeGenerated + LookbackWindow
-| where IPAddress != SecondaryIP
-| where IsCompliant == false and IsManaged == false
-| summarize 
-    FirstSeen = min(TimeGenerated), 
-    LastSeen = max(SecondaryTime), 
-    IPAddresses = make_set(IPAddress), 
-    Locations = make_set(Location), 
-    UserAgents = make_set(UserAgent) 
-    by UserPrincipalName, AppDisplayName
-| where array_length(IPAddresses) > 1
+---
+
+## Configuring Required Directory Auditing
+
+To detect DCSync attacks from host logs, default Windows auditing settings are usually insufficient. You must enable Advanced Security Audit Policies on all Domain Controllers and configure SACLs on the Domain Head object.
+
+### Step 1: Enable Advanced Audit Policy
+In Group Policy targeting all Domain Controllers (`Default Domain Controllers Policy`), navigate to:
+
+`Computer Configuration -> Policies -> Windows Settings -> Security Settings -> Advanced Audit Policy Configuration -> Audit Policies -> DS Access`
+
+Enable the following policy for **Success**:
+* **Audit Directory Service Access**
+
+### Step 2: Verify SACL Configuration
+By default, access to extended attributes on the Domain Object generates audit events if `Audit Directory Service Access` is enabled. However, verify that the System Access Control List (SACL) on the root domain object audits successful accesses for `Control Access` operations by `Everyone` or `Authenticated Users`.
+
+---
+
+## Analyzing Event ID 4662
+
+When a user or process requests directory object access that triggers an audit rule, the DC logs **Event ID 4662** in the Windows Security Event Log: *“An operation was performed on an object.”*
+
+A standard Event ID 4662 for a DCSync attack contains several key fields:
+
+```text
+Log Name:      Security
+Source:        Microsoft-Windows-Security-Auditing
+Event ID:      4662
+Task Category: Directory Service Access
+Level:         Information
+Keywords:      Audit Success
+Description:
+An operation was performed on an object.
+
+Subject:
+    Security ID:        DOMAIN\svc_aadconnect
+    Account Name:       svc_aadconnect
+    Account Domain:     DOMAIN
+    Logon ID:           0x3E7A12
+
+Object:
+    Server:             DS
+    Type:               domainDNS
+    Name:               DC=corp,DC=internal
+    Handle ID:          0x0
+
+Operation Information:
+    Operation Type:     Object Access
+    Accesses:           Control Access
+    Access Mask:        0x100
+    Properties:         
+        Control Access
+        {1131f6ad-9c0e-11d1-bf38-00c04fa93864}
+        {1131f6aa-9c0e-11d1-bf38-00c04fa93864}
+```
+
+### Key Fields to Interrogate:
+
+* **Access Mask**: Look for `0x100` (Control Access / Extended Right).
+* **Properties**: Must contain the Extended Right GUIDs for replication:
+  * `{1131f6aa-9c0e-11d1-bf38-00c04fa93864}` (`DS-Replication-Get-Changes`)
+  * `{1131f6ad-9c0e-11d1-bf38-00c04fa93864}` (`DS-Replication-Get-Changes-All`)
+* **Subject / Account Name**: Identifies the account that performed the operation.
+
+---
+
+## Distinguishing Attackers from Legitimate Traffic
+
+The primary challenge in DCSync detection is filtering out legitimate Active Directory replication. Domain Controllers constantly sync changes with each other using these exact rights and RPC calls. Additionally, legitimate administrative tools and hybrid identity services use them.
+
+### Common Legitimate Sources:
+1. **Machine Accounts of other DCs**: Computer accounts ending in `$` representing valid Domain Controllers (e.g., `DC02$`).
+2. **Azure AD Connect / Entra Connect Accounts**: Sync accounts (often named `MSOL_...` or custom service accounts like `svc_aadconnect`) require `DS-Replication-Get-Changes` and `DS-Replication-Get-Changes-All` to read password hashes for Password Hash Sync (PHS).
+3. **Identity Security Products**: Tools like Microsoft Defender for Identity (MDI) sensor or third-party PAM solutions may trigger replication reads depending on configuration.
+
+### Detection Rule Baseline
+
+A standard detection rule looks for **Event ID 4662** where `Access Mask` is `0x100`, the `Properties` field contains the DCSync GUIDs, and the invoking account is **not** an authorized source.
+
+#### KQL Query (Azure Sentinel / Log Analytics)
+
+```kql
+SecurityEvent
+| where EventID == 4662
+| where AccessMask == "0x100"
+| where Properties has "1131f6aa-9c0e-11d1-bf38-00c04fa93864" or Properties has "1131f6ad-9c0e-11d1-bf38-00c04fa93864"
+// Exclude legitimate Machine Accounts (Domain Controllers)
+| where AccountType != "Machine" and not(Account endsWith "$")
+// Filter known, authorized service accounts (e.g., Azure AD Connect)
+| where Account !has "MSOL_" and Account !has "svc_aadconnect"
+| project TimeGenerated, Computer, Account, SubjectUserSid, AccessMask, Properties, Activity
+```
+
+#### Splunk SPL Query
+
+```text
+index=wineventlog EventCode=4662 AccessMask="0x100" 
+(Properties="*{1131f6aa-9c0e-11d1-bf38-00c04fa93864}*" OR Properties="*{1131f6ad-9c0e-11d1-bf38-00c04fa93864}*")
+NOT (AccountName="*$" OR AccountName="MSOL_*" OR AccountName="svc_aadconnect")
+| table _time, Computer, AccountName, SubjectUserSid, Properties
 ```
 
 ---
 
-## Defense in Depth: Hardening Identity Controls
+## Network Telemetry and RPC Monitoring
 
-Remediating session hijacking risks requires shifting from weak authentication methods to phishing-resistant architectures and tight session evaluation controls.
+Relying solely on host-based Event ID 4662 can present blind spots if audit logging fails, gets saturated, or experiences ingestion delays. Monitoring RPC network traffic provides an independent line of visibility.
 
-### 1. Transition to Phishing-Resistant MFA
-Traditional MFA (SMS, Voice, TOTP, and standard Push Notifications) remains vulnerable to proxying. Organizations must enforce **FIDO2 WebAuthn** hardware keys or **Certificate-Based Authentication (CBA)**.
+When a DCSync attack takes place, the source IP sends traffic over **TCP port 135** (RPC Endpoint Mapper) and connects to a dynamic RPC port allocated for the Directory Replication Service.
 
-* **Why it works:** FIDO2 binds the authentication credential to the specific domain origin registered in the browser (`origin` binding). If a victim attempts to authenticate on a proxied domain (`login.microsoftonline.com.attacker.com`), the browser refuses to sign the challenge with the stored key for `login.microsoftonline.com`, rendering the proxy useless.
+Using network monitoring tools like Zeek, Suricata, or specialized NDR platforms, you can monitor for the specific UUID and opcodes of the `drsuapi` interface.
 
-### 2. Implement Continuous Access Evaluation (CAE)
-Standard OAuth access tokens are valid for 60 to 90 minutes by default. During this window, an attacker using a stolen token can query APIs unimpeded, even if the security team revokes the user's password or flags the account as compromised.
+* **DRSUAPI Interface UUID**: `e3514235-4b06-11d1-ab04-00c04fc2dcd2`
+* **Opcode 3**: `IDL_DRSGetNCChanges`
 
-Enabling **Continuous Access Evaluation (CAE)** allows the IdP to push critical events (e.g., user revocation, IP address change, account disablement) to resource providers (like Exchange Online or SharePoint) in near-real-time. This forces immediate re-evaluation of the session token rather than waiting for token expiration.
-
-### 3. Enforce Strict Device Compliance Policies
-Configure Conditional Access (CA) rules to explicitly block access to enterprise resources unless the request originates from a hybrid-joined or Intune-compliant device.
-
-```
-Conditional Access Policy Structure:
-- Target: All Cloud Apps
-- Users: All Users (Exclude Break-Glass Accounts)
-- Access Controls: Grant -> Require Device to be Marked as Compliant
-```
-
-If an attacker captures a session token via an AitM proxy running on a non-corporate host, the token will fail compliance checks when replayed from the attacker's infrastructure.
+If network sensors observe an RPC connection invoking `DRSGetNCChanges` from an IP address that does not map to a known Domain Controller or Azure AD Connect server, it indicates an unauthorized replication request.
 
 ---
 
-## Programmatic Incident Response
+## Investigation and Triage Workflow
 
-When an active session hijack is confirmed, response teams must act quickly to isolate the account and purge valid refresh tokens. Performing a password reset alone is insufficient, as existing refresh tokens will remain valid until explicitly revoked.
+When a potential DCSync alert triggers, follow a structured investigation flow:
 
-### Automated Remediation Flow via Microsoft Graph PowerShell
+```
+[ Alert Triggered: DCSync Activity Detected ]
+                   │
+                   ▼
+       Is the source account a DC or 
+      authorized sync service (e.g., MSOL)?
+         │                       │
+        Yes                      No
+         │                       │
+         ▼                       ▼
+    [ True Positive     [ High-Severity Incident:
+     False Alarm ]       Investigate Immediately ]
+                                 │
+                                 ├─► Check Source IP & Computer
+                                 ├─► Audit Account Creation & ACL Changes
+                                 └─► Revoke Credentials & Isolate Host
+```
+
+1. **Verify the Account & Host Source**:
+   * What account executed the request? Is it a standard user, a compromised admin, or an unauthorized machine?
+   * Match the `Logon ID` from Event ID 4662 back to **Event ID 4624** (Successful Logon) to identify the source IP address and workstation name.
+
+2. **Inspect Domain Object ACL Modifications**:
+   * Attackers who achieve temporary domain dominance often grant DCSync rights to standard accounts to maintain persistence.
+   * Search for **Event ID 5136** (Directory Service Object Modified) where LDAP attribute `nTSecurityDescriptor` was modified on the domain root object.
+
+3. **Check Target Accounts**:
+   * Which accounts were targeted? Attackers typically request specific sensitive accounts first, such as `krbtgt`, `Administrator`, or service accounts tied to SQL/Kerberoasting targets.
+
+---
+
+## Defense and Mitigation
+
+Detecting DCSync is essential, but preventing unauthorized delegation of these rights reduces the attack surface significantly.
+
+### 1. Audit Domain Object ACLs Regularly
+Perform periodic audits of the Active Directory ACLs to ensure no unauthorized accounts hold replication rights. PowerShell modules like `PowerView` or `BloodHound` can easily highlight these paths:
 
 ```powershell
-# Connect to Microsoft Graph with required scopes
-Connect-MgGraph -Scopes "User.ReadWrite.All", "Directory.AccessAsUser.All"
-
-$TargetUser = "compromised_user@company.com"
-
-# 1. Revoke all active refresh tokens and session cookies
-Revoke-MgUserSignInSession -UserId $TargetUser
-
-# 2. Disable the account temporarily during triage
-Update-MgUser -UserId $TargetUser -AccountEnabled $false
-
-# 3. Log out active sessions via administrative action
-Write-Output "Sessions successfully revoked for $TargetUser. Account disabled for forensic evaluation."
+Get-DomainObjectAcl -SearchBase "DC=corp,DC=internal" -ResolveGUIDs | 
+Where-Object { 
+    ($_.SecurityIdentifier -notmatch "S-1-5-21-.*-516") -and # Exclude Domain Controllers
+    ($_.ObjectAceType -match "DS-Replication-Get-Changes") 
+}
 ```
+
+### 2. Implement the Tiering Model
+Restrict Tier 0 assets (Domain Controllers, Identity Systems) from interacting with lower-tier workstations. Do not allow Tier 0 administrators to log in or leave credentials on Tier 1 (Servers) or Tier 2 (Workstations) machines where local admin compromise could lead to credential theft and subsequent DCSync execution.
+
+### 3. Utilize Protected Users and SAM Name Restraints
+Add high-privilege accounts to the **Protected Users** group to restrict weak Kerberos encryption types and delegation capabilities.
 
 ---
 
-## Defensive Engineering Checklist
+## Key Takeaways
 
-To maintain a robust posture against identity abuse, implement the following baseline controls:
-
-* [ ] **Audit MFA Methods:** Identify and phase out SMS and TOTP enrollment for high-privilege accounts, replacing them with FIDO2/Passkeys.
-* [ ] **Enable Phishing-Resistant Conditional Access:** Restrict administrative interfaces (e.g., Azure Portal, AWS Management Console) strictly to FIDO2 keys and compliant endpoints.
-* [ ] **Ingest Identity Logs:** Ensure `SigninLogs`, `NonInteractiveUserSigninLogs`, and `UserRiskEvents` feed directly into your SIEM with appropriate retention policies.
-* [ ] **Enforce Token Binding / Strict CAE:** Verify that Continuous Access Evaluation is active across all supported SaaS suites.
-* [ ] **Test Automated Playbooks:** Validate that your Incident Response orchestration can execute user session revocation in under 5 minutes from alert generation.
+* **Mechanism**: DCSync abuses legitimate `DRSGetNCChanges` RPC calls to extract password hashes without running local code on Domain Controllers.
+* **Telemetry**: Require **Event ID 4662** with Extended Rights GUIDs (`{1131f6aa-9c0e-11d1-bf38-00c04fa93864}` and `{1131f6ad-9c0e-11d1-bf38-00c04fa93864}`) and Access Mask `0x100`.
+* **Tuning**: Exclude legitimate DCs (`AccountName` ending in `$`) and identity sync service accounts (like Azure AD Connect).
+* **Correlation**: Combine host logs with network RPC telemetry (`DRSUAPI` interface calls) to ensure complete coverage.
