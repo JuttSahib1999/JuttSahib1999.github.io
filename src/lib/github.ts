@@ -19,7 +19,7 @@ const HIDDEN_REPOSITORIES = new Set([
  * IMPORTANT:
  * Never hard-code your PAT here.
  */
-const GITHUB_TOKEN = process.env.GITHUB_PAT || process.env.GITHUB_TOKEN || '';
+const GITHUB_TOKEN = process.env.GH_PAT || process.env.GITHUB_TOKEN || '';
 
 function getHeaders(): Record<string, string> {
   const headers: Record<string, string> = {
@@ -132,7 +132,7 @@ export async function getUserProfile() {
  *
  * Improvements over the old implementation:
  *
- * - Authenticated with GITHUB_PAT when available
+ * - Authenticated with  when available
  * - Handles pagination
  * - Does not stop at 100 repositories
  * - Excludes hidden repositories
