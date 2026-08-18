@@ -2,97 +2,361 @@
 import MainLayout from '../../layouts/MainLayout.astro';
 import Navbar from '../../components/layout/Navbar.astro';
 import Footer from '../../components/layout/Footer.astro';
+
 import { getCollection } from 'astro:content';
 
 const allPosts = await getCollection('blog');
 
-// Filter out drafts and sort by date
 const posts = allPosts
-  .filter(post => !post.data.draft)
-  .sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
+  .filter((post) => !post.data.draft)
+  .sort(
+    (a, b) =>
+      b.data.date.getTime() -
+      a.data.date.getTime()
+  );
+
+function getReadingTime(body: string | undefined) {
+  const words = body
+    ? body.trim().split(/\s+/).length
+    : 0;
+
+  return Math.max(
+    1,
+    Math.ceil(words / 200)
+  );
+}
+
+function getDifficultyClass(
+  difficulty: string
+) {
+  switch (difficulty) {
+
+    case 'Beginner':
+      return 'difficulty-beginner';
+
+    case 'Intermediate':
+      return 'difficulty-intermediate';
+
+    case 'Advanced':
+      return 'difficulty-advanced';
+
+    case 'Expert':
+      return 'difficulty-expert';
+
+    default:
+      return 'difficulty-default';
+  }
+}
 ---
 
 <MainLayout
   title="Blog | Abdul Muqeet Tabraiz"
-  description="Cyber security articles, tutorials, and insights by Abdul Muqeet Tabraiz"
+  description="Cybersecurity articles, tutorials, threat detection insights, and practical security analysis by Abdul Muqeet Tabraiz"
 >
   <Navbar />
-  
+
   <main class="pt-24 pb-20">
-    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-      
-      <!-- Header -->
-      <div class="text-center mb-16">
+
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+
+      <!-- =====================================================
+           HEADER
+      ====================================================== -->
+
+      <div class="text-center mb-14">
+
+        <div class="inline-flex items-center gap-2 px-4 py-2 mb-5 rounded-full bg-cyber-500/10 border border-cyber-500/20 text-cyber-400 text-sm">
+          <span class="w-2 h-2 rounded-full bg-cyber-400"></span>
+
+          Daily Cybersecurity Insights
+        </div>
+
         <h1 class="text-4xl md:text-5xl font-bold text-text-primary mb-4">
           Security Blog
         </h1>
-        <p class="text-text-secondary text-lg">
-          Articles on SOC operations, threat hunting, AI security, and career development.
+
+        <p class="text-text-secondary text-lg max-w-2xl mx-auto">
+          Practical cybersecurity articles covering security operations,
+          threat detection, defensive security, vulnerabilities,
+          and real-world security engineering.
         </p>
-      </div>
-      
-      <!-- Blog Stats -->
-      <div class="glass-panel p-4 mb-8 text-center">
-        <p class="text-text-secondary">
-          <span class="text-cyber-400 font-semibold">{posts.length}</span> article{posts.length !== 1 ? 's' : ''} published
-        </p>
+
       </div>
 
-      <!-- Blog Posts List -->
+
+      <!-- =====================================================
+           STATS
+      ====================================================== -->
+
+      <div class="glass-panel p-5 mb-10 text-center">
+
+        <p class="text-text-secondary">
+
+          <span class="text-cyber-400 font-semibold">
+            {posts.length}
+          </span>
+
+          article{posts.length !== 1 ? 's' : ''} published
+
+        </p>
+
+      </div>
+
+
+      <!-- =====================================================
+           POSTS
+      ====================================================== -->
+
       {posts.length > 0 ? (
-        <div class="space-y-6">
-          {posts.map((post) => (
-            <article class="glass-panel p-6 transition-all duration-300 hover:border-cyber-500/30">
-              <div class="flex items-center gap-3 text-text-muted text-sm mb-3">
-                <span>📅 {post.data.date.toLocaleDateString('en-US', { 
-                  year: 'numeric', 
-                  month: 'long', 
-                  day: 'numeric' 
-                })}</span>
-                <span>•</span>
-                <span>{Math.ceil((post.body?.length || 1000) / 1500)} min read</span>
-              </div>
-              
-              <h2 class="text-xl font-semibold text-text-primary mb-2">
-                <a href={`/blog/${post.id}`} class="hover:text-cyber-400 transition-colors">
-                  {post.data.title}
-                </a>
-              </h2>
-              
-              <p class="text-text-secondary mb-4">
-                {post.data.description}
-              </p>
-              
-              <div class="flex flex-wrap gap-2">
-                <span class="px-3 py-1 text-xs rounded-full bg-cyber-500/10 text-cyber-400">
-                  {post.data.category}
-                </span>
-                {post.data.tags.map((tag: string) => (
-                  <span class="px-3 py-1 text-xs rounded-full bg-surface text-text-muted border border-surface-border">
-                    {tag}
-                  </span>
-                ))}
-              </div>
-              
-              <a href={`/blog/${post.id}`} class="inline-flex items-center gap-1 mt-4 text-soc-400 text-sm hover:text-soc-300 transition-colors">
-                Read Article
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-                </svg>
-              </a>
-            </article>
-          ))}
+
+        <div class="space-y-8">
+
+          {posts.map((post) => {
+
+            const readingTime =
+              getReadingTime(post.body);
+
+            const difficulty =
+              post.data.difficulty || 'Beginner';
+
+            return (
+
+              <article
+                class="glass-panel overflow-hidden transition-all duration-300 hover:border-cyber-500/30"
+              >
+
+                <!-- =================================================
+                     IMAGE
+                ================================================== -->
+
+                {post.data.image && (
+
+                  <a
+                    href={`/blog/${post.id}`}
+                    class="block overflow-hidden"
+                  >
+
+                    <img
+                      src={post.data.image}
+                      alt={post.data.title}
+                      loading="lazy"
+                      class="blog-card-image"
+                    />
+
+                  </a>
+
+                )}
+
+
+                <div class="p-6 md:p-7">
+
+                  <!-- =================================================
+                       META
+                  ================================================== -->
+
+                  <div class="flex flex-wrap items-center gap-x-3 gap-y-2 text-text-muted text-sm mb-4">
+
+                    <span class="inline-flex items-center gap-1.5">
+                      📅
+
+                      {post.data.date.toLocaleDateString(
+                        'en-US',
+                        {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric',
+                        }
+                      )}
+                    </span>
+
+                    <span>•</span>
+
+                    <span>
+                      {readingTime} min read
+                    </span>
+
+                    <span>•</span>
+
+                    <span
+                      class={`difficulty-badge ${getDifficultyClass(difficulty)}`}
+                    >
+                      {difficulty}
+                    </span>
+
+                  </div>
+
+
+                  <!-- =================================================
+                       TITLE
+                  ================================================== -->
+
+                  <h2 class="text-xl md:text-2xl font-semibold text-text-primary mb-3">
+
+                    <a
+                      href={`/blog/${post.id}`}
+                      class="hover:text-cyber-400 transition-colors"
+                    >
+                      {post.data.title}
+                    </a>
+
+                  </h2>
+
+
+                  <!-- =================================================
+                       DESCRIPTION
+                  ================================================== -->
+
+                  <p class="text-text-secondary mb-5 leading-relaxed">
+                    {post.data.description}
+                  </p>
+
+
+                  <!-- =================================================
+                       CATEGORY + TAGS
+                  ================================================== -->
+
+                  <div class="flex flex-wrap gap-2">
+
+                    <span class="px-3 py-1 text-xs rounded-full bg-cyber-500/10 text-cyber-400">
+                      {post.data.category}
+                    </span>
+
+                    {post.data.tags.map(
+                      (tag: string) => (
+
+                        <span
+                          class="px-3 py-1 text-xs rounded-full bg-surface text-text-muted border border-surface-border"
+                        >
+                          {tag}
+                        </span>
+
+                      )
+                    )}
+
+                  </div>
+
+
+                  <!-- =================================================
+                       READ ARTICLE
+                  ================================================== -->
+
+                  <a
+                    href={`/blog/${post.id}`}
+                    class="inline-flex items-center gap-1 mt-5 text-soc-400 text-sm hover:text-soc-300 transition-colors"
+                  >
+
+                    Read Article
+
+                    <svg
+                      class="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M9 5l7 7-7 7"
+                      />
+
+                    </svg>
+
+                  </a>
+
+                </div>
+
+              </article>
+
+            );
+
+          })}
+
         </div>
+
       ) : (
+
         <div class="glass-panel p-12 text-center">
-          <div class="text-6xl mb-4">✍️</div>
-          <h2 class="text-2xl font-bold text-text-primary mb-2">No Articles Yet</h2>
-          <p class="text-text-secondary">Check back soon for security articles and tutorials.</p>
+
+          <div class="text-6xl mb-4">
+            ✍️
+          </div>
+
+          <h2 class="text-2xl font-bold text-text-primary mb-2">
+            No Articles Yet
+          </h2>
+
+          <p class="text-text-secondary">
+            Check back soon for cybersecurity articles and tutorials.
+          </p>
+
         </div>
+
       )}
-      
+
     </div>
+
   </main>
-  
+
   <Footer />
 </MainLayout>
+
+
+<style>
+
+.blog-card-image {
+  width: 100%;
+  aspect-ratio: 16 / 7;
+  object-fit: cover;
+  display: block;
+
+  transition:
+    transform 0.4s ease,
+    opacity 0.4s ease;
+}
+
+article:hover .blog-card-image {
+  transform: scale(1.015);
+  opacity: 0.94;
+}
+
+.difficulty-badge {
+  display: inline-flex;
+  align-items: center;
+  padding:
+    0.2rem
+    0.6rem;
+
+  border-radius: 9999px;
+
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.difficulty-beginner {
+  color: #4ade80;
+  background: rgba(34, 197, 94, 0.1);
+}
+
+.difficulty-intermediate {
+  color: #22d3ee;
+  background: rgba(6, 182, 212, 0.1);
+}
+
+.difficulty-advanced {
+  color: #facc15;
+  background: rgba(234, 179, 8, 0.1);
+}
+
+.difficulty-expert {
+  color: #fb7185;
+  background: rgba(244, 63, 94, 0.1);
+}
+
+.difficulty-default {
+  color: #94a3b8;
+  background: rgba(148, 163, 184, 0.1);
+}
+
+</style>
