@@ -2,30 +2,51 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    branches: [main]
-  
-  # Auto-rebuild every 5 hours
+    branches:
+      - main
+
+  # Automatically rebuild every 5 hours.
+  #
+  # This can be changed to hourly later if you want
+  # repositories to appear faster.
   schedule:
     - cron: '0 */5 * * *'
-  
-  # Allow manual trigger from GitHub UI
+
+  # Allow manual deployment from GitHub Actions.
   workflow_dispatch:
 
+# Required permissions for GitHub Pages deployment.
 permissions:
   contents: read
   pages: write
   id-token: write
 
+# Prevent multiple deployments from running simultaneously.
 concurrency:
-  group: "pages"
+  group: pages
   cancel-in-progress: false
 
 jobs:
+
+  # ============================================================
+  # BUILD
+  # ============================================================
+
   build:
     runs-on: ubuntu-latest
+
     steps:
+
+      # ----------------------------------------------------------
+      # Checkout repository
+      # ----------------------------------------------------------
+
       - name: Checkout Repository
         uses: actions/checkout@v4
+
+      # ----------------------------------------------------------
+      # Setup Node.js
+      # ----------------------------------------------------------
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -33,27 +54,51 @@ jobs:
           node-version: '22'
           cache: 'npm'
 
+      # ----------------------------------------------------------
+      # Install exact dependencies from package-lock.json
+      # ----------------------------------------------------------
+
       - name: Install Dependencies
-        run: npm install
+        run: npm ci
+
+      # ----------------------------------------------------------
+      # Build Astro website
+      #
+      # GITHUB_PAT is supplied ONLY during the server-side build.
+      #
+      # It is NOT placed into the generated website.
+      # ----------------------------------------------------------
 
       - name: Build Website
         run: npm run build
         env:
           NODE_ENV: production
+          GITHUB_PAT: ${{ secrets.GITHUB_PAT }}
+
+      # ----------------------------------------------------------
+      # Upload Astro dist/ directory to GitHub Pages
+      # ----------------------------------------------------------
 
       - name: Upload Build Artifacts
         uses: actions/upload-pages-artifact@v3
         with:
           path: './dist'
 
+  # ============================================================
+  # DEPLOY
+  # ============================================================
+
   deploy:
     needs: build
+
     runs-on: ubuntu-latest
+
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-    
+
     steps:
+
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
