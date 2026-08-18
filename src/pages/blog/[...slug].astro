@@ -2,80 +2,411 @@
 import MainLayout from '../../layouts/MainLayout.astro';
 import Navbar from '../../components/layout/Navbar.astro';
 import Footer from '../../components/layout/Footer.astro';
-import { getCollection, render } from 'astro:content';
+
+import {
+  getCollection,
+  render,
+} from 'astro:content';
+
+
+/* ============================================================
+   STATIC PATHS
+============================================================ */
 
 export async function getStaticPaths() {
+
   const posts = await getCollection('blog');
-  
-  return posts.map((post) => ({
-    params: { slug: post.id },
-    props: { post },
-  }));
+
+  return posts
+    .filter(
+      (post) => !post.data.draft
+    )
+    .map((post) => ({
+
+      params: {
+        slug: post.id,
+      },
+
+      props: {
+        post,
+      },
+
+    }));
+
 }
 
+
+/* ============================================================
+   ARTICLE
+============================================================ */
+
 const { post } = Astro.props;
+
 const { Content } = await render(post);
+
+
+/* ============================================================
+   READING TIME
+============================================================ */
+
+const wordCount = post.body
+  ? post.body.trim().split(/\s+/).length
+  : 0;
+
+const readingTime = Math.max(
+  1,
+  Math.ceil(wordCount / 200)
+);
+
+
+const difficulty =
+  post.data.difficulty || 'Beginner';
+
+
+/* ============================================================
+   DIFFICULTY CLASS
+============================================================ */
+
+function getDifficultyClass(
+  value: string
+) {
+
+  switch (value) {
+
+    case 'Beginner':
+      return 'difficulty-beginner';
+
+    case 'Intermediate':
+      return 'difficulty-intermediate';
+
+    case 'Advanced':
+      return 'difficulty-advanced';
+
+    case 'Expert':
+      return 'difficulty-expert';
+
+    default:
+      return 'difficulty-default';
+
+  }
+
+}
+
 ---
 
 <MainLayout
   title={`${post.data.title} | Abdul Muqeet Tabraiz`}
   description={post.data.description}
 >
+
   <Navbar />
-  
+
+
   <main class="pt-24 pb-20">
+
     <article class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-      
-      <a href="/blog" class="inline-flex items-center gap-2 text-text-muted hover:text-text-primary transition-colors mb-8">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+
+
+      <!-- =====================================================
+           BACK TO BLOG
+      ====================================================== -->
+
+      <a
+        href="/blog"
+        class="inline-flex items-center gap-2 text-text-muted hover:text-text-primary transition-colors mb-8"
+      >
+
+        <svg
+          class="w-4 h-4"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M15 19l-7-7 7-7"
+          />
+
         </svg>
+
         Back to Blog
+
       </a>
-      
+
+
+      <!-- =====================================================
+           HEADER
+      ====================================================== -->
+
       <header class="mb-8">
-        <div class="flex items-center gap-3 text-text-muted text-sm mb-4">
-          <span>{post.data.date.toLocaleDateString('en-US', { 
-            year: 'numeric', month: 'long', day: 'numeric' 
-          })}</span>
+
+
+        <!-- Hero Image -->
+
+        {post.data.image && (
+
+          <div class="article-hero mb-8">
+
+            <img
+              src={post.data.image}
+              alt={post.data.title}
+              fetchpriority="high"
+            />
+
+          </div>
+
+        )}
+
+
+        <!-- Metadata -->
+
+        <div class="flex flex-wrap items-center gap-x-3 gap-y-2 text-text-muted text-sm mb-5">
+
+          <span>
+            Published
+            {post.data.date.toLocaleDateString(
+              'en-US',
+              {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+              }
+            )}
+          </span>
+
+          <span>•</span>
+
+          <span>
+            {readingTime} min read
+          </span>
+
+          <span>•</span>
+
+          <span
+            class={`difficulty-badge ${getDifficultyClass(difficulty)}`}
+          >
+            {difficulty}
+          </span>
+
         </div>
-        
-        <h1 class="text-3xl md:text-4xl font-bold gradient-text mb-4">
+
+
+        <!-- Title -->
+
+        <h1 class="text-3xl md:text-4xl font-bold gradient-text mb-5">
           {post.data.title}
         </h1>
-        
+
+
+        <!-- Description -->
+
+        <p class="text-lg text-text-secondary leading-relaxed mb-6">
+          {post.data.description}
+        </p>
+
+
+        <!-- Category / Tags -->
+
         <div class="flex flex-wrap gap-2">
+
           <span class="px-3 py-1 text-xs rounded-full bg-cyber-500/10 text-cyber-400">
             {post.data.category}
           </span>
-          {post.data.tags.map((tag: string) => (
-            <span class="px-3 py-1 text-xs rounded-full bg-surface text-text-muted border border-surface-border">
-              {tag}
-            </span>
-          ))}
+
+          {post.data.tags.map(
+            (tag: string) => (
+
+              <span
+                class="px-3 py-1 text-xs rounded-full bg-surface text-text-muted border border-surface-border"
+              >
+                {tag}
+              </span>
+
+            )
+          )}
+
         </div>
+
+
+        <!-- Author -->
+
+        <div class="mt-6 pt-6 border-t border-surface-border">
+
+          <span class="text-sm text-text-muted">
+            Written by
+          </span>
+
+          <span class="text-sm text-text-secondary ml-1">
+            {post.data.author}
+          </span>
+
+        </div>
+
       </header>
-      
-      <div class="glass-panel p-8">
-        <div class="prose prose-invert max-w-none
-          prose-headings:text-text-primary
-          prose-h1:text-3xl prose-h1:font-bold
-          prose-h2:text-2xl prose-h2:font-semibold prose-h2:mt-8 prose-h2:mb-4
-          prose-h3:text-xl prose-h3:font-medium
-          prose-p:text-text-secondary prose-p:leading-relaxed
-          prose-a:text-cyber-400
-          prose-code:text-soc-400 prose-code:bg-surface prose-code:px-1 prose-code:py-0.5 prose-code:rounded
-          prose-pre:bg-background prose-pre:border prose-pre:border-surface-border
-          prose-li:text-text-secondary
-          prose-strong:text-text-primary
-          prose-blockquote:border-l-4 prose-blockquote:border-cyber-500 prose-blockquote:pl-4 prose-blockquote:text-text-muted
-        ">
+
+
+      <!-- =====================================================
+           ARTICLE CONTENT
+      ====================================================== -->
+
+      <div class="glass-panel p-7 md:p-10">
+
+        <div
+          class="
+            prose
+            prose-invert
+            max-w-none
+
+            prose-headings:text-text-primary
+
+            prose-h1:text-3xl
+            prose-h1:font-bold
+
+            prose-h2:text-2xl
+            prose-h2:font-semibold
+            prose-h2:mt-8
+            prose-h2:mb-4
+
+            prose-h3:text-xl
+            prose-h3:font-medium
+
+            prose-p:text-text-secondary
+            prose-p:leading-relaxed
+
+            prose-a:text-cyber-400
+
+            prose-code:text-soc-400
+            prose-code:bg-surface
+            prose-code:px-1
+            prose-code:py-0.5
+            prose-code:rounded
+
+            prose-pre:bg-background
+            prose-pre:border
+            prose-pre:border-surface-border
+
+            prose-li:text-text-secondary
+
+            prose-strong:text-text-primary
+
+            prose-blockquote:border-l-4
+            prose-blockquote:border-cyber-500
+            prose-blockquote:pl-4
+            prose-blockquote:text-text-muted
+          "
+        >
+
           <Content />
+
         </div>
+
       </div>
-      
+
+
+      <!-- =====================================================
+           FOOTER
+      ====================================================== -->
+
+      <div class="mt-8">
+
+        <a
+          href="/blog"
+          class="inline-flex items-center gap-2 text-text-muted hover:text-cyber-400 transition-colors"
+        >
+
+          <svg
+            class="w-4 h-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M15 19l-7-7 7-7"
+            />
+
+          </svg>
+
+          More Security Articles
+
+        </a>
+
+      </div>
+
+
     </article>
+
   </main>
-  
+
+
   <Footer />
+
 </MainLayout>
+
+
+<style>
+
+.article-hero {
+  width: 100%;
+  overflow: hidden;
+  border-radius: 1rem;
+
+  border: 1px solid
+    rgba(148, 163, 184, 0.12);
+
+  background: #020617;
+}
+
+.article-hero img {
+  width: 100%;
+  aspect-ratio: 16 / 8;
+  object-fit: cover;
+  display: block;
+}
+
+.difficulty-badge {
+  display: inline-flex;
+  align-items: center;
+
+  padding:
+    0.25rem
+    0.7rem;
+
+  border-radius: 9999px;
+
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.difficulty-beginner {
+  color: #4ade80;
+  background: rgba(34, 197, 94, 0.1);
+}
+
+.difficulty-intermediate {
+  color: #22d3ee;
+  background: rgba(6, 182, 212, 0.1);
+}
+
+.difficulty-advanced {
+  color: #facc15;
+  background: rgba(234, 179, 8, 0.1);
+}
+
+.difficulty-expert {
+  color: #fb7185;
+  background: rgba(244, 63, 94, 0.1);
+}
+
+.difficulty-default {
+  color: #94a3b8;
+  background: rgba(148, 163, 184, 0.1);
+}
+
+</style>
