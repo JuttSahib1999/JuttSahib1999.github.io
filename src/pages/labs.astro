@@ -1,7 +1,123 @@
 ---
+// src/pages/labs.astro
 import MainLayout from '../layouts/MainLayout.astro';
 import Navbar from '../components/layout/Navbar.astro';
 import Footer from '../components/layout/Footer.astro';
+
+// --- Lab Data Definition ---
+// Each object represents a lab in your portfolio
+const labs = [
+  {
+    id: 'soc-foundations',
+    title: 'SOC Foundations & Threat Detection',
+    subtitle: 'SIEM, IDS, Network Security Monitoring',
+    weekRange: 'Weeks 1-4',
+    status: 'Completed',
+    icon: '🛡️',
+    description: 'Deployed and configured a Security Operations Center (SOC) from the ground up. This involved setting up a Wazuh SIEM, Suricata IDS, and a pfSense firewall to build a comprehensive, layered monitoring architecture.',
+    tasks: [
+      'Deployed Wazuh Manager and Agents for host-based intrusion detection (FIM, Registry, Logs).',
+      'Configured Suricata as a network IDS/IPS with custom rules for Nmap scans, HTTP attacks, and ICMP floods.',
+      'Integrated Suricata alerts into Wazuh for a unified dashboard view.',
+      'Set up a pfSense firewall to act as a network perimeter and log all traffic.',
+      'Wrote custom detection rules and implemented GeoIP blocking with ipset/iptables.'
+    ],
+    tools: ['Wazuh SIEM', 'Suricata IDS', 'pfSense Firewall', 'Linux (Ubuntu/Kali)', 'Wireshark', 'Elastic Stack'],
+    findings: [
+      'Successfully correlated network (Suricata) and host-based (Wazuh) alerts, providing 360-degree visibility.',
+      'Custom SSH brute-force rule (100200) was triggered and automatically blocked the source IP via an active response.',
+      'Performed vulnerability assessments using Wazuh\'s NVD integration and patched a vulnerable package (WeasyPrint).'
+    ],
+  },
+  {
+    id: 'malware-analysis',
+    title: 'Malware Analysis & Incident Response',
+    subtitle: 'Static & Dynamic Analysis, Detection Engineering',
+    weekRange: 'Week 5',
+    status: 'Completed',
+    icon: '🦠',
+    description: 'Conducted a full investigation on two malware families (Zeus Banking Trojan & njRAT). This involved a safe, air-gapped analysis, developing detection rules, and creating a NIST-aligned incident response plan.',
+    tasks: [
+      'Established a secure, air-gapped analysis environment for handling live malware samples.',
+      'Performed static analysis (file identification, strings, binwalk) to extract IOCs like file hashes and domains.',
+      'Executed dynamic analysis in the ANY.RUN sandbox to observe real-time behavior (processes, network, registry).',
+      'Mapped observed behaviors to the MITRE ATT&CK framework.',
+      'Developed custom Suricata and Wazuh rules to detect the malware\'s C2 and persistence mechanisms.'
+    ],
+    tools: ['ANY.RUN Sandbox', 'Suricata', 'Wazuh', 'Strings/Binwalk', 'MITRE ATT&CK', 'NIST SP 800-61'],
+    findings: [
+      'Zeus (ZAccess) was identified as a banking trojan using obfuscation, droppers, and network trojan behavior (64/72 detections).',
+      'njRAT was confirmed as a Remote Access Trojan (RAT) using persistence (Startup folder, Registry Run keys) and firewall evasion.',
+      'Five custom Suricata rules were created and validated against PCAP traffic to detect malware IOCs.'
+    ],
+  },
+  {
+    id: 'insider-threat',
+    title: 'Insider Threat Simulation',
+    subtitle: 'Attack and Defend with Living-off-the-Land (LOLBins)',
+    weekRange: 'Week 6',
+    status: 'Completed',
+    icon: '🔐',
+    description: 'Simulated a full insider threat attack chain from both the Red and Blue Team perspectives. The "attacker" used legitimate Windows tools to exfiltrate sensitive data, and the "defender" used Wazuh for threat hunting and detection engineering.',
+    tasks: [
+      'Acted as a Red Team insider, using PowerShell and certutil.exe (LOLBins) to stage, encode (Base64), and exfiltrate data to a netcat listener.',
+      'Executed anti-forensic actions by deleting evidence (files and registry keys).',
+      'Switched to the Blue Team to hunt for FIM alerts in the Wazuh dashboard.',
+      'Decoded the exfiltrated data using CyberChef to recover stolen credentials.',
+      'Engineered a custom Wazuh rule (ID 100500) to detect Base64 file creation, a key part of the exfiltration pattern.'
+    ],
+    tools: ['Wazuh FIM', 'PowerShell', 'certutil.exe', 'CyberChef', 'MITRE ATT&CK', 'Netcat'],
+    findings: [
+      'Wazuh FIM successfully captured all file creation, modification, and deletion events in real-time.',
+      'The custom rule (100500) was debugged and deployed to automatically alert on encoded staging files (T1027).',
+      'A clear timeline of the attack was reconstructed, demonstrating the value of combining FIM, network, and endpoint telemetry.'
+    ],
+  },
+  {
+    id: 'dfir-disk-memory',
+    title: 'Digital Forensics (DFIR) - Disk & Memory Analysis',
+    subtitle: 'Autopsy, FTK Imager, Registry & Volatility',
+    weekRange: 'Weeks 7-10',
+    status: 'Completed',
+    icon: '💾',
+    description: 'Dove deep into Windows digital forensics. Acquired disk images, analyzed file systems (NTFS MFT, ADS), parsed the Windows registry, and performed volatile memory analysis on a suspect workstation.',
+    tasks: [
+      'Performed forensically sound disk acquisition using FTK Imager, creating E01 images with verified MD5/SHA-1 hashes.',
+      'Analyzed NTFS file systems, including the Master File Table (MFT), Alternate Data Streams (ADS), and MACB timestamps.',
+      'Used Autopsy to build a case, recover deleted files, and generate a forensic report.',
+      'Extracted and analyzed the Windows Security Event Log, Prefetch files, and Thumbcache.',
+      'Performed memory forensics using Volatility 3 to analyze a raw RAM dump, identifying active processes and network connections.'
+    ],
+    tools: ['FTK Imager', 'Autopsy', 'Volatility', 'Registry Explorer', 'LECmd/PECmd', 'EvtxECmd'],
+    findings: [
+      'Recovered deleted files from an NTFS image, including a `.docx` and a `.xlsx` file, proving data destruction.',
+      'Found an Alternate Data Stream (ADS) containing a malicious JPEG, demonstrating a common file-hiding technique.',
+      'Identified a TrueCrypt service set to start automatically, indicating full-disk encryption was used.'
+    ],
+  },
+  {
+    id: 'corporate-espionage',
+    title: 'Corporate Espionage Investigation (Capstone)',
+    subtitle: 'M57.biz Incident: 3-Source Correlation',
+    weekRange: 'Weeks 11-12',
+    status: 'Completed',
+    icon: '🧑‍💻',
+    description: 'My Phase Two capstone: a full investigation of a corporate espionage case. I correlated evidence from a disk image, a RAM dump, and two USB images to prove an insider had exfiltrated sensitive intellectual property.',
+    tasks: [
+      'Performed email analysis on a suspect\'s PST file to uncover a business email compromise (BEC) attempt.',
+      'Correlated LNK, Prefetch, and Registry artefacts to prove a specific file was opened and attached to a reply email.',
+      'Analyzed an impersonation attack where the display name was spoofed, but the underlying mail-to address (Gmail) was different.',
+      'Identified the culprit\'s USB device (the "Work USB") and confirmed it contained stolen data.',
+      'Used Volatility memory analysis to prove the suspect ran a memory-dumping tool and had an active SMB session to a file server.'
+    ],
+    tools: ['Autopsy', 'Volatility 2/3', 'LECmd/PECmd', 'Registry Explorer', 'Email Parsing', 'USB Forensics', 'Timeline Analysis'],
+    findings: [
+      'Using a super-timeline in Autopsy, I filtered over 1M events down to 8 decisive ones, proving a 4-stage action sequence in under 30 seconds.',
+      'The investigation showed a two-channel exfiltration: (a) a USB drive and (b) an SMB network share to another LAN host.',
+      'The suspect was identified as a "patent researcher" who was using an automation script to harvest and exfiltrate patent data.'
+    ],
+  }
+];
 ---
 
 <MainLayout
@@ -9,108 +125,91 @@ import Footer from '../components/layout/Footer.astro';
   description="Hands-on cyber security lab environments and tutorials"
 >
   <Navbar />
-  
+
   <main class="pt-24 pb-20">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       
       <!-- Header -->
       <div class="text-center mb-16">
         <h1 class="text-4xl md:text-5xl font-bold text-text-primary mb-4">
-          Security Labs
+          My Cyberster Internship Labs
         </h1>
         <p class="text-text-secondary text-lg max-w-2xl mx-auto">
-          Hands-on lab environments for learning SOC operations, threat detection, and security monitoring.
+          A comprehensive journey through 12 weeks of hands-on training in a Security Operations Center (SOC). From SIEM deployment to corporate espionage investigation.
         </p>
       </div>
-      
+
       <!-- Labs Grid -->
-      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-        
-        <!-- Lab 1: Wazuh SIEM -->
-        <div class="glass-panel p-6 transition-all duration-300 hover:border-cyber-500/30">
-          <div class="text-4xl mb-4">🛡️</div>
-          <h3 class="text-lg font-semibold text-text-primary mb-2">Wazuh SIEM Lab</h3>
-          <p class="text-text-muted text-sm mb-4">
-            Complete SIEM environment with Wazuh server, Elastic Stack, and Windows/Linux agents.
-          </p>
-          <div class="space-y-2 mb-4">
-            <div class="flex items-center gap-2 text-text-muted text-sm">
-              <span class="text-success">✓</span> Log Collection
+      <div class="grid md:grid-cols-2 lg:grid-cols-2 gap-8">
+        {labs.map((lab) => (
+          <div key={lab.id} class="glass-panel p-6 transition-all duration-300 hover:border-cyber-500/30 flex flex-col h-full">
+            <div class="flex justify-between items-start mb-4">
+              <div class="text-4xl">{lab.icon}</div>
+              <span class="px-3 py-1 text-xs font-medium rounded-full bg-success/10 text-success border border-success/20">
+                {lab.status}
+              </span>
             </div>
-            <div class="flex items-center gap-2 text-text-muted text-sm">
-              <span class="text-success">✓</span> Threat Detection Rules
-            </div>
-            <div class="flex items-center gap-2 text-text-muted text-sm">
-              <span class="text-success">✓</span> Dashboard Creation
-            </div>
+            <h3 class="text-xl font-semibold text-text-primary mb-1">{lab.title}</h3>
+            <p class="text-sm text-cyber-400 font-mono mb-2">{lab.weekRange}</p>
+            <p class="text-text-muted text-sm mb-4">{lab.subtitle}</p>
+            
+            <p class="text-text-secondary text-sm mb-4">{lab.description}</p>
+            
+            <!-- Toggleable Details -->
+            <details class="mt-auto group">
+              <summary class="cursor-pointer text-sm text-cyber-400 hover:text-cyber-300 transition-colors font-medium list-none flex items-center gap-2">
+                <svg class="w-4 h-4 transition-transform group-open:rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                Show Details
+              </summary>
+              <div class="mt-4 space-y-4 text-sm">
+                <div>
+                  <h4 class="font-semibold text-text-primary">Key Tasks:</h4>
+                  <ul class="list-disc list-inside text-text-secondary space-y-1 ml-2 marker:text-cyber-400">
+                    {lab.tasks.map((task) => <li key={task}>{task}</li>)}
+                  </ul>
+                </div>
+                <div>
+                  <h4 class="font-semibold text-text-primary">Tools Used:</h4>
+                  <div class="flex flex-wrap gap-2 mt-1">
+                    {lab.tools.map((tool) => <span key={tool} class="px-2 py-0.5 text-xs rounded-full bg-cyber-500/10 text-cyber-300 border border-cyber-500/20">{tool}</span>)}
+                  </div>
+                </div>
+                <div>
+                  <h4 class="font-semibold text-text-primary">Key Findings:</h4>
+                  <ul class="list-disc list-inside text-text-secondary space-y-1 ml-2 marker:text-success">
+                    {lab.findings.map((finding) => <li key={finding}>{finding}</li>)}
+                  </ul>
+                </div>
+              </div>
+            </details>
           </div>
-          <div class="flex gap-2 flex-wrap">
-            <span class="px-2 py-0.5 text-xs rounded-full bg-cyber-500/10 text-cyber-400">Wazuh</span>
-            <span class="px-2 py-0.5 text-xs rounded-full bg-soc-500/10 text-soc-400">Elastic</span>
-          </div>
-        </div>
-        
-        <!-- Lab 2: Suricata IDS -->
-        <div class="glass-panel p-6 transition-all duration-300 hover:border-soc-500/30">
-          <div class="text-4xl mb-4">🔍</div>
-          <h3 class="text-lg font-semibold text-text-primary mb-2">Suricata IDS Lab</h3>
-          <p class="text-text-muted text-sm mb-4">
-            Network intrusion detection with Suricata, custom rules, and traffic analysis.
-          </p>
-          <div class="space-y-2 mb-4">
-            <div class="flex items-center gap-2 text-text-muted text-sm">
-              <span class="text-success">✓</span> Rule Writing
-            </div>
-            <div class="flex items-center gap-2 text-text-muted text-sm">
-              <span class="text-success">✓</span> Alert Analysis
-            </div>
-            <div class="flex items-center gap-2 text-text-muted text-sm">
-              <span class="text-success">✓</span> Traffic Monitoring
-            </div>
-          </div>
-          <div class="flex gap-2 flex-wrap">
-            <span class="px-2 py-0.5 text-xs rounded-full bg-soc-500/10 text-soc-400">Suricata</span>
-            <span class="px-2 py-0.5 text-xs rounded-full bg-purple-400/10 text-purple-400">NIDS</span>
-          </div>
-        </div>
-        
-        <!-- Lab 3: Kali Linux -->
-        <div class="glass-panel p-6 transition-all duration-300 hover:border-purple-400/30">
-          <div class="text-4xl mb-4">🐉</div>
-          <h3 class="text-lg font-semibold text-text-primary mb-2">Kali Linux Lab</h3>
-          <p class="text-text-muted text-sm mb-4">
-            Penetration testing environment with Kali Linux tools and vulnerable targets.
-          </p>
-          <div class="space-y-2 mb-4">
-            <div class="flex items-center gap-2 text-text-muted text-sm">
-              <span class="text-success">✓</span> Reconnaissance Tools
-            </div>
-            <div class="flex items-center gap-2 text-text-muted text-sm">
-              <span class="text-success">✓</span> Vulnerability Scanning
-            </div>
-            <div class="flex items-center gap-2 text-text-muted text-sm">
-              <span class="text-success">✓</span> Exploitation Practice
-            </div>
-          </div>
-          <div class="flex gap-2 flex-wrap">
-            <span class="px-2 py-0.5 text-xs rounded-full bg-purple-400/10 text-purple-400">Kali</span>
-            <span class="px-2 py-0.5 text-xs rounded-full bg-cyber-500/10 text-cyber-400">Pentesting</span>
-          </div>
-        </div>
-        
+        ))}
       </div>
-      
-      <!-- More labs coming -->
-      <div class="glass-panel p-8 mt-8 text-center">
-        <div class="text-4xl mb-4">🚧</div>
-        <h3 class="text-xl font-semibold text-text-primary mb-2">More Labs Coming Soon</h3>
-        <p class="text-text-muted">
-          I'm building detailed walkthrough labs for threat hunting, malware analysis, and incident response.
-        </p>
+
+      <!-- Dashboard Widget -->
+      <div class="glass-panel p-8 mt-16 text-center border border-cyber-500/10">
+        <h2 class="text-2xl font-bold text-text-primary mb-6">Internship at a Glance</h2>
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <div class="p-4 rounded-lg bg-cyber-900/30 backdrop-blur-sm">
+            <div class="text-3xl font-bold text-cyber-400">12</div>
+            <p class="text-text-secondary text-sm">Weeks Completed</p>
+          </div>
+          <div class="p-4 rounded-lg bg-cyber-900/30 backdrop-blur-sm">
+            <div class="text-3xl font-bold text-cyber-400">15+</div>
+            <p class="text-text-secondary text-sm">Security Tools Mastered</p>
+          </div>
+          <div class="p-4 rounded-lg bg-cyber-900/30 backdrop-blur-sm">
+            <div class="text-3xl font-bold text-cyber-400">5</div>
+            <p class="text-text-secondary text-sm">Major Lab Investigations</p>
+          </div>
+          <div class="p-4 rounded-lg bg-cyber-900/30 backdrop-blur-sm">
+            <div class="text-3xl font-bold text-cyber-400">100+</div>
+            <p class="text-text-secondary text-sm">Security Alerts Investigated</p>
+          </div>
+        </div>
       </div>
-      
     </div>
   </main>
-  
+
   <Footer />
 </MainLayout>
