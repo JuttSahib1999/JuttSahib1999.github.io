@@ -1,0 +1,80 @@
+﻿# Custom Suricata Rules - SOC Foundations & Malware Analysis Labs
+# Extracted from Cyberster Internship Reports
+
+# === SOC FOUNDATIONS RULES (Weeks 1-4) ===
+
+# Rule 1: Nmap SYN Scan Detection
+alert tcp any any -> any any (
+    msg:"CUSTOM Nmap SYN Scan Detected"; 
+    flags:S,12; 
+    threshold: type both, track by_src, count 5, seconds 3; 
+    classtype:attempted-recon; 
+    sid:9000001; 
+    rev:1;
+)
+
+# Rule 2: HTTP Directory Traversal Attempt
+alert http any any -> any any (
+    msg:"CUSTOM HTTP Directory Traversal Attempt Detected"; 
+    flow:established,to_server; 
+    http.uri; 
+    content:"/../"; nocase; 
+    classtype:web-application-attack; 
+    sid:9000002; 
+    rev:1;
+)
+
+# Rule 3: ICMP Flood Detection
+alert icmp any any -> any any (
+    msg:"CUSTOM ICMP Flood Detected"; 
+    itype:8; 
+    threshold: type both, track by_src, count 10, seconds 2; 
+    classtype:attempted-dos; 
+    sid:9000003; 
+    rev:1;
+)
+
+# === MALWARE ANALYSIS RULES (Week 5) ===
+
+# Rule 4: Zeus C2 DNS Query
+alert dns any any -> any any (
+    msg:"Zeus C2 DNS Query - j.maxmind.com"; 
+    dns.query; 
+    content:"j.maxmind.com"; nocase; 
+    sid:1000001; 
+    rev:1;
+)
+
+# Rule 5: Zeus Suspicious Domain
+alert dns any any -> any any (
+    msg:"Zeus Suspicious Domain - fpdownload.macromedia.com"; 
+    dns.query; 
+    content:"fpdownload.macromedia.com"; nocase; 
+    sid:1000002; 
+    rev:1;
+)
+
+# Rule 6: Zeus Flash Payload Download
+alert http any any -> any any (
+    msg:"Zeus Flash Payload Download Attempt"; 
+    http.uri; 
+    content:"install_all_win_cab_64_ax_sgn.z"; nocase; 
+    sid:1000003; 
+    rev:1;
+)
+
+# Rule 7: Zeus DNS Communication to Suspicious IP
+alert udp any any -> 85.114.128.127 53 (
+    msg:"Zeus DNS Communication to Suspicious IP"; 
+    sid:1000004; 
+    rev:1;
+)
+
+# Rule 8: Zeus Data Exfiltration
+alert http any any -> any any (
+    msg:"Zeus Possible Data Exfiltration (POST)"; 
+    http.method; 
+    content:"POST"; 
+    sid:1000005; 
+    rev:1;
+)

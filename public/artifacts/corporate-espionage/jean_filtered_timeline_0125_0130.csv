@@ -1,0 +1,20 @@
+﻿Icon,Date/Time,Description,Event Type
+true,2008-07-20 01:28:04,/Documents and Settings/Jean/Application Data/Microsoft/Office/Recent/m57biz.LNK,File Modified
+true,2008-07-20 01:28:04,C:\Documents and Settings\Jean\Desktop\m57biz.xls,Recent Documents
+true,2008-07-20 01:27:42,C:\Documents and Settings\Jean\Desktop\m57biz.xls,Recent Documents
+true,2008-07-20 01:28:04,/Documents and Settings/Jean/Desktop/m57biz.xls,File Changed
+true,2008-07-20 01:28:03,/Documents and Settings/Jean/Desktop/m57biz.xls,File Modified
+true,2008-07-20 01:28:00,"Sent from: Jean User <jean@m57.biz> Sent to: alison@m57.biz : RE: Please send me the information now : I have attached the information that you have requested to this email message. (Original Message - From: alison@m57.biz [mailto:tuckgorge@gmail.com])",Email Sent
+true,2008-07-20 01:28:03,/Documents and Settings/Jean/Local Settings/Application Data/Microsoft/Outlook/outlook.pst/m57biz.xls,File Modified
+true,2008-07-20 01:28:00,"Message from: Jean User <jean@m57.biz> To: alison@m57.biz : RE: Please send me the information now : I have attached the information that you have requested to this email message. (Original Message - From: alison@m57.biz [mailto:tuckgorge@gmail.com])",Email Received
+
+=== CORRELATION ANALYSIS ===
+
+4-Stage Event Sequence:
+1. 01:27:40 - Excel prefetch run (EXCEL.EXE-1C75F8D6.pf)
+2. 01:27:42 - Recent Documents/LNK created
+3. 01:28:00 - Email sent with attachment
+4. 01:28:03-04 - File Modified/Changed events
+
+Key Finding: Display name alison@m57.biz vs underlying address tuckgorge@gmail.com
+Outlook 2000 used underlying address for reply routing

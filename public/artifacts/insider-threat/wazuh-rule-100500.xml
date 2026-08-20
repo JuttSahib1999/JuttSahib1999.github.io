@@ -1,0 +1,49 @@
+﻿<!-- Custom Wazuh Rules - Insider Threat Detection Lab -->
+<!-- Extracted from Cyberster Internship Week 6 Report -->
+<group name="custom,espionage,syscheck">
+  
+  <!-- Rule 100500: Base64 file creation detection -->
+  <rule id="100500" level="12">
+    <if_group>syscheck_entry_added</if_group>
+    <match>(?i)espionage.*\.b64</match>
+    <description>Base64 file created in Espionage directory - Possible Data Exfiltration</description>
+    <mitre>
+      <id>T1027</id>
+      <id>T1074</id>
+    </mitre>
+    <group>data_exfiltration,lolbin</group>
+  </rule>
+
+  <!-- Rule 100200: Registry Persistence Detection -->
+  <rule id="100200" level="10">
+    <if_sid>550</if_sid>
+    <field name="syscheck.path">(?i).*CurrentVersion\\Run.*</field>
+    <description>Registry persistence key modified - Possible malware persistence</description>
+    <mitre>
+      <id>T1547</id>
+    </mitre>
+    <group>persistence</group>
+  </rule>
+
+  <!-- Rule 100201: Suspicious Command Execution -->
+  <rule id="100201" level="8">
+    <if_sid>502</if_sid>
+    <match>cmd\.exe</match>
+    <description>Suspicious cmd.exe execution detected</description>
+    <mitre>
+      <id>T1059</id>
+    </mitre>
+    <group>execution</group>
+  </rule>
+
+  <!-- Rule 100202: Temp Directory File Drop -->
+  <rule id="100202" level="9">
+    <if_group>syscheck</if_group>
+    <field name="syscheck.path">(?i).*\\Temp\\.*\.exe</field>
+    <description>Executable dropped in Temp directory - Possible malware staging</description>
+    <mitre>
+      <id>T1105</id>
+    </mitre>
+    <group>ingress_tool_transfer</group>
+  </rule>
+</group>

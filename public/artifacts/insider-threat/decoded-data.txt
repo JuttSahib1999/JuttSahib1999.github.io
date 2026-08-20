@@ -1,0 +1,36 @@
+﻿=== EXFILTRATED DATA DECODED ===
+From Insider Threat Simulation Lab (Week 6)
+
+Original Base64 Encoded Data:
+LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCkNMSUVOVDogQ3liZXJzdGVyIHwgQUNDVDogNDQ1OSB8IFBXOiBBZG1pblBhc3N3b3JkMjAyNiEKLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo=
+
+Decoded Data:
+CLIENT: Cyberster | ACCT: 4459 | PW: AdminPassword2026!
+
+=== ATTACK CHAIN SUMMARY ===
+
+Phase 1 - Data Staging:
+- Created Client_Database.txt with simulated credentials
+- Staged in C:\Espionage\ directory
+
+Phase 2 - Data Obfuscation:
+- Used certutil.exe (LOLBin) to Base64 encode the file
+- Output: system_cache.b64
+
+Phase 3 - Exfiltration:
+- Used PowerShell Invoke-WebRequest to exfiltrate
+- Target: http://192.168.35.128:8080
+
+Phase 4 - Anti-Forensics:
+- Deleted all evidence using Remove-Item -Force
+- Files removed: Client_Database.txt, system_cache.b64
+
+=== DETECTION ===
+
+Wazuh FIM Alerts:
+- Rule 554: File added to system (both files detected)
+- Rule 553: File deleted from system (both files detected)
+
+Custom Rule 100500:
+- Detects Base64 file creation in monitored directories
+- MITRE T1027 - Obfuscated Files or Information

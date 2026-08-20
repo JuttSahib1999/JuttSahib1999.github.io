@@ -103,3 +103,13 @@ body {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Prevent details from scrolling the page */
+details {
+  scroll-margin-top: 100px;
+}
+
+details summary {
+  cursor: pointer;
+  user-select: none;
+}

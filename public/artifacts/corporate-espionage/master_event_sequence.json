@@ -1,0 +1,76 @@
+﻿{
+  "investigation": "M57.biz Corporate Espionage - Jo Case",
+  "timeline": [
+    {
+      "timestamp": "2009-11-13T04:48:58Z",
+      "source": "DSK",
+      "artifact": "RAM pslist smss.exe",
+      "event": "System boot"
+    },
+    {
+      "timestamp": "2009-11-17T00:21:37Z",
+      "source": "RAM",
+      "artifact": "pslist cmd.exe PID 3096",
+      "event": "Jo launches cmd via shell"
+    },
+    {
+      "timestamp": "2009-11-17T00:22:29Z",
+      "source": "RAM",
+      "artifact": "pslist mdd_1.3.exe PID 3700",
+      "event": "mdd memory acquisition issued"
+    },
+    {
+      "timestamp": "2009-11-17T00:22:31Z",
+      "source": "RAM",
+      "artifact": "windows.info SystemTime",
+      "event": "MEMORY CAPTURE INSTANT"
+    },
+    {
+      "timestamp": "2009-11-21T01:00:46Z",
+      "source": "NET",
+      "artifact": "MountPoints2 ##192.168.1.1#m57",
+      "event": "M57.biz share mapped Z: as m57admin"
+    },
+    {
+      "timestamp": "2009-11-23T18:23:03Z",
+      "source": "DSK",
+      "artifact": "python-2.6.4.msi",
+      "event": "Python downloaded for patentauto.py"
+    },
+    {
+      "timestamp": "2009-11-23T21:54:45Z",
+      "source": "DSK",
+      "artifact": "USBSTOR USB 2.0 Flash Disk",
+      "event": "USB 2.0 Flash Disk attached"
+    },
+    {
+      "timestamp": "2009-11-23T21:55:01Z",
+      "source": "DSK",
+      "artifact": "patentauto.py Created",
+      "event": "Python automation script materialised"
+    },
+    {
+      "timestamp": "2009-11-23T22:02:28Z",
+      "source": "DSK",
+      "artifact": "Web History patft.uspto.gov",
+      "event": "Live USPTO patent queries executed"
+    },
+    {
+      "timestamp": "2009-11-24T22:01:54Z",
+      "source": "DSK",
+      "artifact": "USBSTOR Generic Flash Disk",
+      "event": "Second USB attached (work device)"
+    },
+    {
+      "timestamp": "2009-11-24T22:16:29Z",
+      "source": "DEL",
+      "artifact": "Desktop\\web\\HighQuality + Videos deleted",
+      "event": "Counter-forensic clean-up"
+    }
+  ],
+  "conclusion": {
+    "crime": "Intellectual Property Theft / Corporate Espionage",
+    "mechanism": "Two-channel exfiltration: USB drive AND SMB network share",
+    "evidence": "Papers1-17 (1,632+ files) on Work USB, privileged m57admin credentials, hash matches confirmed"
+  }
+}
