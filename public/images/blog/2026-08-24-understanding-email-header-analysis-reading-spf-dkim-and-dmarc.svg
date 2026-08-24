@@ -1,0 +1,293 @@
+<svg
+xmlns="http://www.w3.org/2000/svg"
+width="1600"
+height="900"
+viewBox="0 0 1600 900">
+
+<defs>
+
+  <linearGradient
+    id="background"
+    x1="0%"
+    y1="0%"
+    x2="100%"
+    y2="100%">
+
+    <stop
+      offset="0%"
+      stop-color="#07111f"/>
+
+    <stop
+      offset="50%"
+      stop-color="#0b1728"/>
+
+    <stop
+      offset="100%"
+      stop-color="#030712"/>
+
+  </linearGradient>
+
+  <linearGradient
+    id="accent"
+    x1="0%"
+    y1="0%"
+    x2="100%"
+    y2="0%">
+
+    <stop
+      offset="0%"
+      stop-color="#22c55e"/>
+
+    <stop
+      offset="100%"
+      stop-color="#06b6d4"/>
+
+  </linearGradient>
+
+  <filter id="glow">
+
+    <feGaussianBlur
+      stdDeviation="12"
+      result="blur"/>
+
+    <feMerge>
+
+      <feMergeNode
+        in="blur"/>
+
+      <feMergeNode
+        in="SourceGraphic"/>
+
+    </feMerge>
+
+  </filter>
+
+</defs>
+
+<!-- Background -->
+
+<rect
+  width="1600"
+  height="900"
+  fill="url(#background)"/>
+
+
+<!-- Grid -->
+
+<g
+  opacity="0.08"
+  stroke="#94a3b8"
+  stroke-width="1">
+
+  <path d="M0 100H1600"/>
+  <path d="M0 200H1600"/>
+  <path d="M0 300H1600"/>
+  <path d="M0 400H1600"/>
+  <path d="M0 500H1600"/>
+  <path d="M0 600H1600"/>
+  <path d="M0 700H1600"/>
+  <path d="M0 800H1600"/>
+
+  <path d="M100 0V900"/>
+  <path d="M300 0V900"/>
+  <path d="M500 0V900"/>
+  <path d="M700 0V900"/>
+  <path d="M900 0V900"/>
+  <path d="M1100 0V900"/>
+  <path d="M1300 0V900"/>
+  <path d="M1500 0V900"/>
+
+</g>
+
+
+<!-- Decorative security nodes -->
+
+<g
+  filter="url(#glow)"
+  fill="none"
+  stroke="url(#accent)"
+  stroke-width="3"
+  opacity="0.8">
+
+  <circle
+    cx="1250"
+    cy="260"
+    r="120"/>
+
+  <circle
+    cx="1250"
+    cy="260"
+    r="80"/>
+
+  <circle
+    cx="1250"
+    cy="260"
+    r="40"/>
+
+</g>
+
+
+<!-- Connection lines -->
+
+<g
+  stroke="#22c55e"
+  stroke-width="2"
+  opacity="0.35">
+
+  <path d="M1050 260L1170 260"/>
+  <path d="M1330 260L1450 260"/>
+  <path d="M1250 140V60"/>
+  <path d="M1250 380V460"/>
+
+</g>
+
+
+<!-- Terminal window -->
+
+<rect
+  x="930"
+  y="500"
+  width="500"
+  height="230"
+  rx="14"
+  fill="#020617"
+  stroke="#1e293b"
+  stroke-width="2"/>
+
+<circle
+  cx="960"
+  cy="530"
+  r="7"
+  fill="#22c55e"/>
+
+<circle
+  cx="985"
+  cy="530"
+  r="7"
+  fill="#06b6d4"/>
+
+<circle
+  cx="1010"
+  cy="530"
+  r="7"
+  fill="#64748b"/>
+
+<text
+  x="960"
+  y="590"
+  fill="#22c55e"
+  font-family="monospace"
+  font-size="22">
+  $ security-analysis --active
+</text>
+
+<text
+  x="960"
+  y="630"
+  fill="#94a3b8"
+  font-family="monospace"
+  font-size="19">
+  telemetry: enabled
+</text>
+
+<text
+  x="960"
+  y="665"
+  fill="#94a3b8"
+  font-family="monospace"
+  font-size="19">
+  detection: running
+</text>
+
+<text
+  x="960"
+  y="700"
+  fill="#06b6d4"
+  font-family="monospace"
+  font-size="19">
+  status: monitoring
+</text>
+
+
+<!-- Main title -->
+
+<text
+  x="120"
+  y="220"
+  fill="#f8fafc"
+  font-family="Arial, Helvetica, sans-serif"
+  font-size="64"
+  font-weight="700">
+
+  Cybersecurity Insight
+
+</text>
+
+<text
+  x="120"
+  y="310"
+  fill="#cbd5e1"
+  font-family="Arial, Helvetica, sans-serif"
+  font-size="40"
+  font-weight="600">
+
+  Understanding Email Header Analysis: Reading SPF, DKIM, and DMARC
+
+</text>
+
+
+<!-- Difficulty -->
+
+<rect
+  x="120"
+  y="370"
+  width="250"
+  height="54"
+  rx="27"
+  fill="#22c55e"
+  opacity="0.14"
+  stroke="#22c55e"
+  stroke-width="1"/>
+
+<text
+  x="245"
+  y="405"
+  text-anchor="middle"
+  fill="#4ade80"
+  font-family="Arial, Helvetica, sans-serif"
+  font-size="22"
+  font-weight="700">
+
+  BEGINNER
+
+</text>
+
+
+<!-- Date -->
+
+<text
+  x="120"
+  y="475"
+  fill="#64748b"
+  font-family="monospace"
+  font-size="22">
+
+  Published 2026-08-24
+
+</text>
+
+
+<!-- Footer -->
+
+<text
+  x="120"
+  y="825"
+  fill="#475569"
+  font-family="monospace"
+  font-size="18">
+
+  Abdul Muqeet Tabraiz • Cybersecurity Research &amp; Security Operations
+
+</text>
+
+</svg>
