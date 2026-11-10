@@ -1,0 +1,195 @@
+---
+title: "Detecting LSASS Memory Dumping: Telemetry, Access Masks, and Detection Engineering"
+description: "Learn how adversaries interact with the Local Security Authority Subsystem Service to steal credentials, and how to detect process memory dumping using Sysmon Event ID 10 and handle access rights."
+date: "2026-11-10"
+tags: ["Cybersecurity", "Detection Engineering", "Threat Hunting", "Active Directory"]
+category: "Cyber Security"
+difficulty: "Intermediate"
+author: "Abdul Muqeet Tabraiz"
+image: "/images/blog/2026-11-10-detecting-lsass-memory-dumping-telemetry-access-masks-and-detection-engineering.svg"
+---
+
+The Local Security Authority Subsystem Service (`lsass.exe`) remains one of the primary targets for attackers once they gain administrative access to a Windows host. Because LSASS handles user authentication, session tokens, Kerberos tickets, and cached password hashes, extracting its memory space gives an adversary immediate lateral movement capabilities across an Active Directory domain.
+
+While modern defensive controls like Credential Guard and RunAsPPL (Protected Process Light) make memory dumping harder, attackers frequently encounter non-compliant legacy systems, disabled PPL, or leverage kernel-level bypasses. 
+
+To catch credential harvesting before an adversary pivots across your environment, you need to understand how process handle requests work, what access telemetry looks like in your SIEM, and how to separate legitimate system maintenance from malicious memory extraction.
+
+---
+
+## How LSASS Dumping Works Under the Hood
+
+Reading process memory in Windows requires an open handle to the target process with specific access rights. An attacker or tool (such as Mimikatz, ProcDump, or custom C# dumpers) generally follows a standard sequence of Windows API calls:
+
+1. **Obtain the Process ID (PID)** of `lsass.exe` via `CreateToolhelp32Snapshot` or `EnumProcesses`.
+2. **Open a handle to LSASS** using `OpenProcess`, requesting rights to read and query process memory.
+3. **Dump or read the memory contents** using `MiniDumpWriteDump` (from `dbghelp.dll` or `dbgcore.dll`), or manually reading memory pages via `ReadProcessMemory`.
+4. **Write the dump to disk** or stream it over an encrypted network channel.
+
+The critical detection boundary for defenders exists at **Step 2**. Opening a handle to a process leaves telemetry behind if proper audit controls or Sysmon configurations are active.
+
+---
+
+## Essential Telemetry Sources
+
+Catching LSASS dumping relies primarily on process access events rather than file creation events, as attackers often stream memory out of process or use randomized filenames.
+
+### 1. Sysmon Event ID 10 (ProcessAccess)
+
+Sysmon's `ProcessAccess` event logs whenever a process opens a handle to another process. It captures the source image, target image, the requested access mask (`GrantedAccess`), and the call stack leading up to the handle request (`CallTrace`).
+
+To log these events without flooding your log pipeline, configure your Sysmon XML to target handles opened to `lsass.exe`:
+
+```xml
+<Sysmon schemaversion="4.90">
+  <EventFiltering>
+    <ProcessAccess onmatch="include">
+      <TargetImage condition="end with">\lsass.exe</TargetImage>
+    </ProcessAccess>
+  </EventFiltering>
+</Sysmon>
+```
+
+### 2. Windows Security Event ID 4656 / 4663 (Handle Requests)
+
+If Sysmon is not deployed, native Windows auditing can track handle requests via Object Access auditing. You must configure a System Access Control List (SACL) on the `lsass.exe` process object using tools like `Auditpol` or custom PowerShell scripts to track handle attempts.
+
+---
+
+## Deconstructing the Access Mask (`GrantedAccess`)
+
+When a process calls `OpenProcess`, Windows calculates the granted permissions based on the requester's privileges and returns a hexadecimal bitmask. Different operations require different access rights.
+
+| Access Right | Hex Value | Practical Meaning |
+| :--- | :--- | :--- |
+| `PROCESS_VM_READ` | `0x0010` | Allows reading memory within the target process space. |
+| `PROCESS_VM_OPERATION` | `0x0008` | Allows modifying memory regions (e.g., allocating memory). |
+| `PROCESS_VM_WRITE` | `0x0020` | Allows writing memory within the process space. |
+| `PROCESS_QUERY_INFORMATION` | `0x0400` | Allows querying process metadata (PID, exit code, handles). |
+| `PROCESS_QUERY_LIMITED_INFORMATION` | `0x1000` | Limited metadata queries (supported on older/restricted handles). |
+| `PROCESS_ALL_ACCESS` | `0x1F0FFF` / `0x1FFFFF` | Full control over the process object. |
+
+When tools call API functions like `MiniDumpWriteDump`, the underlying code typically requests `PROCESS_VM_READ` (`0x0010`) combined with `PROCESS_QUERY_INFORMATION` (`0x0400`). 
+
+### High-Risk Access Mask Patterns
+
+- **`0x1410`**: `PROCESS_QUERY_INFORMATION` (0x0400) + `PROCESS_QUERY_LIMITED_INFORMATION` (0x1000) + `PROCESS_VM_READ` (0x0010). This exact combination is commonly generated by standard `MiniDumpWriteDump` calls.
+- **`0x1F0FFF` / `0x1FFFFF`**: Full access. Heavy-handed dumpers and basic proof-of-concept tools often request full control unnecessarily.
+- **`0x0010` / `0x1010`**: Direct `VM_READ` access without full query rights, often seen in custom evasion scripts trying to request the bare minimum permissions.
+
+---
+
+## Analyzing the Call Trace
+
+Access masks alone can yield false positives because endpoint security agents (EDRs, AVs) also need to inspect process memory. To differentiate legitimate tools from malicious ones, look at the `CallTrace` field in Sysmon Event ID 10.
+
+A call trace shows the dynamic link libraries (DLLs) and memory addresses executing at the time the handle was requested.
+
+### Red Flags in Call Traces
+
+1. **Unbacked Memory Modules**: If the memory address initiating the call does not resolve to a legitimate signed DLL on disk (e.g., `UNKNOWN(00007FF81A2B0000)`), it indicates code running from dynamically allocated memory—a strong sign of shellcode execution or reflective DLL injection.
+2. **Abnormal Usage of `comsvcs.dll`**: The built-in Windows component `comsvcs.dll` exports a function called `MiniDump`. Attackers execute this via `rundll32.exe` to dump LSASS without bringing external binaries onto the system:
+   ```cmd
+   rundll32.exe C:\windows\system32\comsvcs.dll, MiniDump 672 C:\Windows\Temp\lsass.dmp full
+   ```
+   In this scenario, Sysmon ID 10 will show `rundll32.exe` as the `SourceImage` accessing `lsass.exe` with `comsvcs.dll` present in the `CallTrace`.
+3. **Native Dbghelp Loaders**: Non-standard processes (like `powershell.exe`, `cmd.exe`, or binaries executing from `C:\Users\Public\`) loading `dbghelp.dll` or `dbgcore.dll` to query LSASS.
+
+---
+
+## Practical Detection Engineering
+
+Here are production-ready detection queries for common platforms.
+
+### KQL Query (Microsoft Sentinel / Defender for Endpoint)
+
+```kql
+DeviceEvents
+| where ActionType == "OpenProcessApiCall"
+| where TargetProcessFileName =~ "lsass.exe"
+// Filter for common access masks associated with memory reads
+| where RequestedAccess has_any ("0x1410", "0x1F0FFF", "0x1010", "0x1418") 
+// Exclude known security tools by path if validated in your environment
+| where not(InitiatingProcessFolderPath endswith @"\Windows Defender\MsMpEng.exe")
+| where not(InitiatingProcessFolderPath endswith @"\CrowdStrike\CSFalconService.exe")
+| project TimeGenerated, DeviceName, InitiatingProcessFileName, InitiatingProcessCommandLine, RequestedAccess, AccountName
+```
+
+### Splunk Query (Using Sysmon Telemetry)
+
+```text
+index=windows sourcetype="XmlWinEventLog:Microsoft-Windows-Sysmon/Operational" EventCode=10
+TargetImage="*\\lsass.exe"
+(GrantedAccess="0x1410" OR GrantedAccess="0x1F0FFF" OR GrantedAccess="0x1010" OR GrantedAccess="0x1418")
+NOT SourceImage IN ("C:\\Program Files\\Windows Defender\\MsMpEng.exe", "C:\\Windows\\System32\\svchost.exe")
+| table _time Hostname SourceImage TargetImage GrantedAccess CallTrace
+```
+
+---
+
+## Investigating an LSASS Access Alert
+
+When an alert triggers, follow this structured investigation workflow:
+
+```
+[ Alert Triggered: Sysmon ID 10 / LSASS Access ]
+                        │
+                        ▼
+           Verify Source Binary Path
+                        │
+       ┌────────────────┴────────────────┐
+       ▼                                 ▼
+[ Native System Binary ]        [ Third-Party / Unknown ]
+(rundll32, powershell, etc.)    (proc.exe, temp paths, etc.)
+       │                                 │
+       ▼                                 ▼
+Inspect Command Line             Check Digital Signature
+& Parent Process                 & Process Hash Reputation
+       │                                 │
+       └────────────────┬────────────────┘
+                        │
+                        ▼
+             Examine the Call Trace
+                        │
+        ┌───────────────┴───────────────┐
+        ▼                               ▼
+[ Unbacked Memory / UNKNOWN ]  [ Signed Legitimate DLLs ]
+   (High-Confidence Malicious)    (Likely Baseline / EDR)
+```
+
+1. **Identify the Initiating Process (`SourceImage`)**: Is the process running out of `C:\Windows\System32\` or a user-writable directory like `AppData` or `Temp`?
+2. **Review Command-Line Parameters**: If `SourceImage` is `rundll32.exe`, `powershell.exe`, or `cmd.exe`, inspect process creation logs (Sysmon Event ID 1 or Security Event ID 4688) around the exact timestamp. Look for references to `comsvcs.dll`, `MiniDump`, or encoded PowerShell commands.
+3. **Inspect the Execution Stack**: Does the `CallTrace` contain `UNKNOWN` regions or unexpected DLL loads?
+4. **Look for Subsequent File Activity**: Search for large file creation events (`.dmp`, `.tmp`, `.dat`, or randomized extensions) occurring within seconds of the handle request.
+5. **Check Network Telemetry**: Determine if the source process established outbound network connections immediately following the handle creation, which may indicate inline exfiltration without staging a file to disk.
+
+---
+
+## Baseline Tuning and Common Pitfalls
+
+Defenders often abandon LSASS access monitoring due to noisy false positives. Common sources of noise include:
+
+- **Antivirus and EDR Solution Agents**: Security products frequently query LSASS memory handles to scan for injected threads or malicious hooks. Always document and whitelist your deployed security tools based on signed paths and publisher certificates.
+- **Windows Error Reporting (`WerFault.exe`)**: When a service crashes, `WerFault.exe` may request process access to capture a dump. Verify if an actual service crash occurred at the same timestamp.
+- **Password Filter / Identity Management Agents**: SSO connectors, password sync tools, or performance monitoring software might legitimately query LSASS.
+
+### Defensive Limitations to Keep in Mind
+
+- **Kernel-Level Drivers (BYOVD)**: If an adversary installs a vulnerable or malicious kernel driver, they can read LSASS memory directly from kernel space, bypassing user-mode handle callbacks and Sysmon Event ID 10 entirely.
+- **Direct Syscall Usage**: Advanced evasion techniques bypass user-mode API hooks (like `ntdll.dll`), though Sysmon's kernel driver will still generally capture the handle creation via kernel callbacks.
+
+---
+
+## Hardening Recommendations
+
+Detection should always be paired with preventative controls to restrict access to LSASS in the first place:
+
+1. **Enable LSA Protection (RunAsPPL)**: Configure `RunAsPPL` via Group Policy or Registry (`HKLM\SYSTEM\CurrentControlSet\Control\Lsa\RunAsPPL` = `1`). This prevents non-protected processes from obtaining high-privilege handles to LSASS.
+2. **Enable Credential Guard**: Utilizes virtualization-based security (VBS) to isolate LSASS secrets in a virtual environment inaccessible to even local system administrators.
+3. **Restrict Local Administrative Privileges**: Memory dumping requires administrative rights (specifically `SeDebugPrivilege`). Enforcing the principle of least privilege drastically reduces the attack surface.
+
+---
+
+## Summary
+
+Dumping LSASS memory remains a primary post-exploitation objective for adversaries seeking domain credentials. By collecting process access telemetry, monitoring suspicious GrantedAccess masks like `0x1410` and `0x1F0FFF`, and scrutinizing unbacked call traces, defenders can identify credential harvesting activity early in the attack chain. Combine these detection strategies with LSA Protection and Credential Guard to minimize your exposure.
